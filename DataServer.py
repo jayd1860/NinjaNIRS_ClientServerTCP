@@ -9,7 +9,7 @@ def SendData():
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Bind the socket to server (our own local) address and local port
-    server_address = ('localhost', Settings.port)
+    server_address = (Settings.host, Settings.port)
     sys.stdout.write('DataServer:  Binding socket to port %d\n'% Settings.port )
     tcp_socket.bind(server_address)
 
@@ -27,7 +27,7 @@ def SendData():
 
             # Receive and print data 32 bytes at a time, as long as the client is sending something
             while True:
-                connection.send(32)
+                connection.send('Message from SERVER'.encode('utf-8'))
                 sys.stdout.write("DataServer:  Server sending data:    count = %d\n"% count)
                 time.sleep(1)
                 count = count+1
