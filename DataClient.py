@@ -16,7 +16,7 @@ def RecvData():
     while count < 3:
         try:
             sys.stdout.write('DataClient:  Attempt #%d to connect to socket on port %d\n'% (count, Settings.port))
-            err = s.connect_ex((Settings.host, Settings.port))
+            err = s.connect_ex((serverIpAddr, Settings.port))
             if err == 0:
                 break
             sys.stdout.write('DataClient:  Failed to connect on port %d\n\n' % Settings.port)
@@ -32,6 +32,7 @@ def RecvData():
 
     sys.stdout.write('DataClient:  Connection Success!!\n')
     time.sleep(.5)
+
 
     # Receive data
     while True:
