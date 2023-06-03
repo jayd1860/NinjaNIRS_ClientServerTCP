@@ -7,13 +7,15 @@ def RecvData():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     sys.stdout.write('\n')
+    
+    ipaddr = socket.gethostbyname(Settings.servername)
 
     # Connect to server
     count = 0
     while count < 3:
         try:
-            sys.stdout.write('DataClient:  Attempt #%d to connect to socket on port %d\n'% (count, Settings.port))
-            err = s.connect_ex((Settings.host, Settings.port))
+            sys.stdout.write('DataClient:  Attempt #%d to connect to IP address %s on port %d\n'% (count, ipaddr, Settings.port))
+            err = s.connect_ex(socket.gethostbyname(Settings.servername), Settings.port)
             if err == 0:
                 break
             sys.stdout.write('DataClient:  Failed to connect on port %d\n\n' % Settings.port)

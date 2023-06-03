@@ -9,8 +9,9 @@ def SendData():
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Bind the socket to server (our own local) address and local port
-    server_address = (Settings.host, Settings.port)
-    sys.stdout.write('DataServer:  Binding socket to port %d\n'% Settings.port )
+    ipaddr = socket.gethostbyname(Settings.servername)
+    server_address = (ipaddr, Settings.port)
+    sys.stdout.write('DataServer:  Binding socket on IP address %s to port %d\n'% (ipaddr, Settings.port))
     tcp_socket.bind(server_address)
 
     # Listen on port 81
