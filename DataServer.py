@@ -12,8 +12,8 @@ def SendData():
     sys.stdout.write('DataServer:  Well-known server name is %s has IP address %s\n'% (Settings.servername, serverIpAddr))
 
     # Bind the socket to server (our own local) address and local port
+    sys.stdout.write('DataServer:  Binding socket to server IP address %s on port %d\n'% (serverIpAddr, Settings.port))
     server_address = (serverIpAddr, Settings.port)
-    sys.stdout.write('DataServer:  Binding socket to port %d\n'% Settings.port )
     tcp_socket.bind(server_address)
 
     # Listen on port 81
