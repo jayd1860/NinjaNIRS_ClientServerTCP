@@ -30,11 +30,10 @@ def SendData():
     sys.stdout.write('DataServer:  Binding socket to server IP address %s on port %d\n'% (serverIpAddr, Settings.port))
     s.bind(server_address)
     s.listen(1)
-    while True:
-        sys.stdout.write("DataServer:  Waiting for connection  ...\n")
-        connection, client = s.accept()
-        time.sleep(2)
-        sys.stdout.write("DataServer:  Connected to client IP: %s\n"% format(client))
+    sys.stdout.write("DataServer:  Waiting for connection  ...\n")
+    connection, client = s.accept()
+    time.sleep(2)
+    sys.stdout.write("DataServer:  Connected to client IP: %s\n"% format(client))
 
     # Receive and print data 32 bytes at a time, as long as the client is sending something
     count = 1
