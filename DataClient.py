@@ -7,6 +7,10 @@ def RecvData():
     s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+
+    #####################################################################
+    # Send server it's IP address
+    #####################################################################
     try:
         serverIpAddr = socket.gethostbyname(Settings.servername)
     except:
@@ -17,27 +21,29 @@ def RecvData():
             servernameTemp = Settings.servername
         servernameAlt = (servernameTemp + '.local')
         sys.stdout.write('DataClient:   Will try host name %s\n'% servernameAlt)
-        serverIpAddr = socket.gethostbyname(servernameAlt)        
-    
+        serverIpAddr = socket.gethostbyname(servernameAlt)
     serverAddr = (serverIpAddr, Settings.port0)
     s0.bind(('', Settings.port0))
     s0.sendto(serverIpAddr.encode('utf-8'), serverAddr)
     time.sleep(1)
-    while True:
-        # Receive the client packet along with the address it is coming from
-        message, foo = s0.recvfrom(128)
-        if len(message) > 0:
-            break
-        sys.stdout.write('DataClient:   Waiting to receive confirmation from server ...\n')
-        time.sleep(1)
 
-    sys.stdout.write('DataClient:   Received confirmation from server!!! ...\n')
+    # Receive the client packet along with the address it is coming from
+    try:
+        message, foo = s0.recvfrom(128)
+    except:
+        sys.stdout.write('DataClient:   recvfrom failed! Looks like server is offline. Waiting for server to come online ...\n')
+        time.sleep(1)
+        message, foo = s0.recvfrom(128)
+    sys.stdout.write('DataClient:   Received confirmation from server - %s!!! ...\n'% message.decode())
     sys.stdout.write('\n')
     time.sleep(2)
 
-    # Connect to server
+
+    #####################################################################
+    # Connect to server and receive data stream
+    #####################################################################
     count = 0
-    while count < 3:
+    while count < 4:
         try:
             sys.stdout.write('DataClient:  Attempt #%d to connect to socket on port %d\n'% (count, Settings.port))
             err = s.connect_ex((serverIpAddr, Settings.port))
@@ -48,19 +54,17 @@ def RecvData():
             sys.stdout.write('DataClient:  Failed to connect on port %d\n\n'% Settings.port)
         count = count+1
         time.sleep(.3)
-
     if err != 0:
         sys.stdout.write('DataClient:  Exceeded max number of attempts to connect. Exiting ...\n')
         s.close()
         return
-
     sys.stdout.write('DataClient:  Connection Success!!\n')
     time.sleep(.5)
 
     # Receive data
     while True:
         d = s.recv(256)
-        sys.stdout.write('DataClient:  Received message - %s'% d.decode())
+        sys.stdout.write('Message from server received:  %s'% d.decode())
         if not d:
             break
     s.close()

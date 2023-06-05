@@ -8,7 +8,9 @@ def SendData():
     s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Set up a socket to get your own IP
+    #####################################################################
+    # Get your own IP address from client
+    #####################################################################
     server_address0 = ('', Settings.port0)
     s0.bind(server_address0)
     sys.stdout.write('DataServer: Waiting to receive IP from client ...\n')
@@ -23,7 +25,10 @@ def SendData():
         sys.stdout.write('DataServer: Waiting to receive IP from client ...\n')
         time.sleep(1)
 
-    # Now connect stream socket
+
+    #####################################################################
+    # Listen for and accept client connection then stream data to it
+    #####################################################################
     server_address = (serverIpAddr, Settings.port)
 
     # Bind the socket to server (our own local) address and local port
@@ -35,10 +40,10 @@ def SendData():
     time.sleep(2)
     sys.stdout.write("DataServer:  Connected to client IP: %s\n"% format(client))
 
-    # Receive and print data 32 bytes at a time, as long as the client is sending something
+    # Send data stream
     count = 1
     while True:
-        msg = ("DataServer:  This is data packet #%d\n" % count)
+        msg = ("\"DataServer:  This is data packet #%d\"\n" % count)
         connection.send(msg.encode('utf-8'))
         sys.stdout.write(msg)
         time.sleep(1)
