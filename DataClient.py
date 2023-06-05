@@ -7,8 +7,21 @@ def RecvData():
     s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    serverIpAddr = socket.gethostbyname(Settings.servername)
-    s0.sendto('DataClient: Sending IP address to server', serverIpAddr)
+    try:
+        serverIpAddr = socket.gethostbyname(Settings.servername)
+    except:
+        sys.stdout.write('DataClient:   Failed to find host %s\n'% Settings.servername)
+        if Settings.servername[-1] == '\n':
+            servernameTemp = Settings.servername[-1]
+        else:
+            servernameTemp = Settings.servername
+        servernameAlt = (servernameTemp + '.local')
+        sys.stdout.write('DataClient:   Will try host name %s\n'% servernameAlt)
+        serverIpAddr = socket.gethostbyname(servernameAlt)        
+    
+    serverAddr = (serverIpAddr, Settings.port0)
+    s0.bind(('', Settings.port0))
+    s0.sendto(serverIpAddr.encode('utf-8'), serverAddr)
     time.sleep(1)
     while True:
         # Receive the client packet along with the address it is coming from
@@ -30,7 +43,7 @@ def RecvData():
             err = s.connect_ex((serverIpAddr, Settings.port))
             if err == 0:
                 break
-            sys.stdout.write('DataClient:  Failed to connect on port %d\n\n' % Settings.port)
+            sys.stdout.write('DataClient:  Failed to connect on port %d\n\n'% Settings.port)
         except:
             sys.stdout.write('DataClient:  Failed to connect on port %d\n\n'% Settings.port)
         count = count+1
