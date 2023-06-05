@@ -38,8 +38,8 @@ def SendData():
     # Receive and print data 32 bytes at a time, as long as the client is sending something
     count = 1
     while True:
-        msg = ("DataServer:  This is data packet #%d\n" % count).encode('utf-8')
-        connection.send(msg)
+        msg = ("DataServer:  This is data packet #%d\n" % count)
+        connection.send(msg.encode('utf-8'))
         sys.stdout.write(msg)
         time.sleep(1)
         count = count+1
