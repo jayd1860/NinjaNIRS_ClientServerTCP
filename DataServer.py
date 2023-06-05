@@ -11,6 +11,7 @@ def SendData():
     # Set up a socket to get your own IP
     server_address0 = ('', Settings.port0)
     s0.bind(server_address0)
+    sys.stdout.write('DataServer: Waiting to receive IP from client ...\n')
     while True:
         # Receive the client packet along with the address it is coming from
         serverIpAddr, clientIpAddr = s0.recvfrom(128)

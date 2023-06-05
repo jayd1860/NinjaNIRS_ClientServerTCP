@@ -1,4 +1,4 @@
 
-servername = 'DESKTOP-S0E80E8'
+servername = 'NinjaNIRSServer'
 port = 6021
 port0 = 6037
