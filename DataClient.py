@@ -59,8 +59,8 @@ def RecvData():
 
     # Receive data
     while True:
-        d = s.recv(128)
-        sys.stdout.write('DataClient:  Received message   %s\n'% d)
+        d = s.recv(256)
+        sys.stdout.write('DataClient:  Received message - %s\n'% d)
         if not d:
             break
     s.close()
