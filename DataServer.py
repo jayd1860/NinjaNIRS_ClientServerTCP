@@ -16,14 +16,14 @@ def SendData():
         # Receive the client packet along with the address it is coming from
         serverIpAddr, clientIpAddr = s0.recvfrom(128)
         if len(serverIpAddr) > 0:
+            sys.stdout.write('DataServer:  Received own IP address %s\n'% serverIpAddr)
             time.sleep(2)
-            s0.sendto('DataServer: We received our IP address', clientIpAddr)
+            s0.sendto(b'DataServer: We received our IP address', (clientIpAddr[0], Settings.port0))
             break
         sys.stdout.write('DataServer: Waiting to receive IP from client ...\n')
         time.sleep(1)
 
     # Now connect stream socket
-    sys.stdout.write('DataServer:  Received own IP address %s\n'% serverIpAddr)
     server_address = (serverIpAddr, Settings.port)
 
     # Bind the socket to server (our own local) address and local port
