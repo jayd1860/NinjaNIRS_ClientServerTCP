@@ -11,33 +11,34 @@ def RecvData():
     #####################################################################
     # Send server it's IP address
     #####################################################################
-    try:
-        serverIpAddr = socket.gethostbyname(Settings.servername)
-    except:
-        sys.stdout.write('DataClient:   Failed to find host %s\n'% Settings.servername)
-        if Settings.servername[-1] == '\n':
-            servernameTemp = Settings.servername[-1]
-        else:
-            servernameTemp = Settings.servername
-        servernameAlt = (servernameTemp + '.local')
-        sys.stdout.write('DataClient:   Will try host name %s\n'% servernameAlt)
-        serverIpAddr = socket.gethostbyname(servernameAlt)
-    serverAddr = (serverIpAddr, Settings.port0)
-    s0.bind(('', Settings.port0))
-    s0.sendto(serverIpAddr.encode('utf-8'), serverAddr)
-    time.sleep(1)
+    # try:
+    #     serverIpAddr = socket.gethostbyname(Settings.servername)
+    # except:
+    #     sys.stdout.write('DataClient:   Failed to find host %s\n'% Settings.servername)
+    #     if Settings.servername[-1] == '\n':
+    #         servernameTemp = Settings.servername[-1]
+    #     else:
+    #         servernameTemp = Settings.servername
+    #     servernameAlt = (servernameTemp + '.local')
+    #     sys.stdout.write('DataClient:   Will try host name %s\n'% servernameAlt)
+    #     serverIpAddr = socket.gethostbyname(servernameAlt)
+    # serverAddr = (serverIpAddr, Settings.port0)
+    # s0.bind(('', Settings.port0))
+    # s0.sendto(serverIpAddr.encode('utf-8'), serverAddr)
+    # time.sleep(1)
+    #
+    # # Receive the client packet along with the address it is coming from
+    # try:
+    #     message, foo = s0.recvfrom(128)
+    # except:
+    #     sys.stdout.write('DataClient:   recvfrom failed! Looks like server is offline. Waiting for server to come online ...\n')
+    #     time.sleep(1)
+    #     message, foo = s0.recvfrom(128)
+    # sys.stdout.write('DataClient:   Received confirmation from server - %s!!! ...\n'% message.decode())
+    # sys.stdout.write('\n')
+    # time.sleep(2)
 
-    # Receive the client packet along with the address it is coming from
-    try:
-        message, foo = s0.recvfrom(128)
-    except:
-        sys.stdout.write('DataClient:   recvfrom failed! Looks like server is offline. Waiting for server to come online ...\n')
-        time.sleep(1)
-        message, foo = s0.recvfrom(128)
-    sys.stdout.write('DataClient:   Received confirmation from server - %s!!! ...\n'% message.decode())
-    sys.stdout.write('\n')
-    time.sleep(2)
-
+    serverIpAddr = Settings.serveripaddr
 
     #####################################################################
     # Connect to server and receive data stream
