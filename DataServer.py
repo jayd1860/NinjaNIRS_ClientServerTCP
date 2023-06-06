@@ -25,7 +25,7 @@ def SendData():
     #     sys.stdout.write('DataServer: Waiting to receive IP from client ...\n')
     #     time.sleep(1)
 
-    serverIpAddr = Settings.serveripaddr
+    serverIpAddr = Settings.serveripaddr.encode('utf-8')
 
     #####################################################################
     # Listen for and accept client connection then stream data to it
