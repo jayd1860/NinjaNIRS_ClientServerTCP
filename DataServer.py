@@ -11,21 +11,20 @@ def SendData():
     #####################################################################
     # Get your own IP address from client
     #####################################################################
-    # server_address0 = ('192.168.154.249', Settings.port0)
-    # s0.bind(server_address0)
-    # sys.stdout.write('DataServer:  Waiting to receive IP from client ...\n')
-    # while True:
-    #     # Receive the client packet along with the address it is coming from
-    #     serverIpAddr, clientIpAddr = s0.recvfrom(128)
-    #     if len(serverIpAddr) > 0:
-    #         sys.stdout.write('DataServer:  Received own IP address %s\n'% serverIpAddr.decode())
-    #         time.sleep(2)
-    #         s0.sendto(b'DataServer: We received our IP address', (clientIpAddr[0], Settings.port0))
-    #         break
-    #     sys.stdout.write('DataServer: Waiting to receive IP from client ...\n')
-    #     time.sleep(1)
+    server_address0 = ('', Settings.port0)
+    s0.bind(server_address0)
+    sys.stdout.write('DataServer:  Waiting to receive IP from client ...\n')
+    while True:
+        # Receive the client packet along with the address it is coming from
+        serverIpAddr, clientIpAddr = s0.recvfrom(128)
+        if len(serverIpAddr) > 0:
+            sys.stdout.write('DataServer:  Received own IP address %s\n'% serverIpAddr.decode())
+            time.sleep(2)
+            s0.sendto(b'DataServer: We received our IP address', (clientIpAddr[0], Settings.port0))
+            break
+        sys.stdout.write('DataServer: Waiting to receive IP from client ...\n')
+        time.sleep(1)
 
-    serverIpAddr = Settings.serveripaddr.encode('utf-8')
 
     #####################################################################
     # Listen for and accept client connection then stream data to it
