@@ -38,9 +38,9 @@ def RecvData():
     # Receive data
     while True:
         d = s.recv(256)
-        sys.stdout.write('Message from server received:  %s'% d.decode())
-        if not d:
+        if len(d)==0:
             break
+        sys.stdout.write('Message from server received:  \"%s\"\n' % d.decode())
     s.close()
 
 

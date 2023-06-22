@@ -66,18 +66,18 @@ def SendData():
         # Send data stream
         count = 1
         while count < 10:
-            msg = ("\"DataServer:  This is data packet #%d\"\n" % count)
+            msg = ('DataServer:  This is data packet #%d' % count)
             connection.send(msg.encode('utf-8'))
-            sys.stdout.write(msg)
+            sys.stdout.write(msg+'\n')
             time.sleep(1)
             count = count+1
 
         # Wait before closing connection to let last packet be received
-        msg = 'DataServer:  Sent last message and closed connection ... goodbye\n'
+        msg = 'DataServer:  Sent last message and closed connection ... goodbye'
         connection.send(msg.encode('utf-8'))
         time.sleep(2)
         connection.close()
-        sys.stdout.write(msg)
+        sys.stdout.write(msg+'\n')
 
     s.close()
     s1.close()
