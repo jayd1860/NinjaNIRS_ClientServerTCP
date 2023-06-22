@@ -1,4 +1,5 @@
 
 servername = 'NinjaNIRSServer'
-port = 6021
 port0 = 6037
+port1 = 6038
+port = 6021

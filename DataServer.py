@@ -5,47 +5,82 @@ import Settings
 
 
 def SendData():
-    s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    streamSocketBound = False
 
-    #####################################################################
-    # Get your own IP address from client
-    #####################################################################
     server_address0 = ('', Settings.port0)
+    server_address1 = ('', Settings.port1)
+
+    s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
     s0.bind(server_address0)
-    sys.stdout.write('DataServer:  Waiting to receive IP from client ...\n')
+    s1.bind(server_address1)
+
     while True:
-        # Receive the client packet along with the address it is coming from
-        serverIpAddr, clientIpAddr = s0.recvfrom(128)
-        if len(serverIpAddr) > 0:
-            sys.stdout.write('DataServer:  Received own IP address %s\n'% serverIpAddr.decode())
-            time.sleep(2)
-            s0.sendto(b'DataServer: We received our IP address', (clientIpAddr[0], Settings.port0))
-            break
-        sys.stdout.write('DataServer: Waiting to receive IP from client ...\n')
-        time.sleep(1)
 
+        #####################################################################
+        # Get your own IP address from client
+        #####################################################################
+        # 1. Waiting to receive initial request from client
+        sys.stdout.write('DataServer:   1. Waiting to receive INITIAL MESSAGE from client ...\n')
+        initClientMsg, clientIpAddr = s0.recvfrom(256)
 
-    #####################################################################
-    # Listen for and accept client connection then stream data to it
-    #####################################################################
-    server_address = (serverIpAddr, Settings.port)
-
-    # Bind the socket to server (our own local) address and local port
-    sys.stdout.write('DataServer:  Binding socket to server IP address %s on port %d\n'% (serverIpAddr.decode(), Settings.port))
-    s.bind(server_address)
-    s.listen(1)
-    sys.stdout.write("DataServer:  Waiting for connection  ...\n")
-    connection, client = s.accept()
-    time.sleep(2)
-    sys.stdout.write("DataServer:  Connected to client IP: %s\n"% format(client))
-
-    # Send data stream
-    count = 1
-    while True:
-        msg = ("\"DataServer:  This is data packet #%d\"\n" % count)
-        connection.send(msg.encode('utf-8'))
+        # 2. Received initial request. Wait 2 seconds for client to get ready to receive,
+        #    then send client it's own IP address
+        time.sleep(2)
+        msg = 'DataServer:   2. Received INITIAL MESSAGE from client. Sending response\n'
         sys.stdout.write(msg)
-        time.sleep(1)
-        count = count+1
+        s1.sendto(msg.encode('utf-8'), (clientIpAddr[0], Settings.port1))
+
+        # 3. Wait to receive our own IP address
+        sys.stdout.write('DataServer:   3. Waiting to receive our own IP addrees from client ...\n')
+        time.sleep(2)
+        serverIpAddr, clientIpAddr = s1.recvfrom(256)
+
+        # 4. Wait to receive our own IP address
+        sys.stdout.write('DataServer:   4. Receive our own IP addrees %s from client\n'% serverIpAddr.decode())
+
+
+        #####################################################################
+        # Listen for and accept client connection then stream data to it
+        #####################################################################
+        server_address = (serverIpAddr.decode(), Settings.port)
+        sys.stdout.write('\n')
+
+        # Bind the socket to server (our own local) address and local port
+        sys.stdout.write('DataServer:   5. Opening and binding stream socket to IP address %s, port %d\n'% (serverIpAddr.decode(), Settings.port))
+
+        # Bind stream socket only once for the life of a server session
+        if not streamSocketBound:
+            s.bind(server_address)
+            streamSocketBound = True
+
+        s.listen(1)
+        sys.stdout.write("DataServer:   6. Waiting for connection  ...\n")
+        connection, client = s.accept()
+        time.sleep(2)
+        sys.stdout.write("DataServer:  7. Connected to client IP: %s\n"% format(client))
+
+        # Send data stream
+        count = 1
+        while count < 10:
+            msg = ("\"DataServer:  This is data packet #%d\"\n" % count)
+            connection.send(msg.encode('utf-8'))
+            sys.stdout.write(msg)
+            time.sleep(1)
+            count = count+1
+
+        # Wait before closing connection to let last packet be received
+        msg = 'DataServer:  Sent last message and closed connection ... goodbye\n'
+        connection.send(msg.encode('utf-8'))
+        time.sleep(2)
+        connection.close()
+        sys.stdout.write(msg)
+
+    s.close()
+    s1.close()
+    s0.close()
+
 

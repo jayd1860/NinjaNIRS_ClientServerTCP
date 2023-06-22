@@ -1,0 +1,80 @@
+Jun 22, 2023
+
+# Enable wifi if it was disabled 
+sudo rfkill unblock wifi
+
+# Write wireless SASID and pre-shared key to wpa_supplicant.conf file in one command 
+sudo sh -C "wpa_passphrase 'TestWifi' 'TestPassword' >> /etc/wpa_supplicant.conf 
+
+# Use wpa_cli t reconfigure/reload the wireless settings
+sudo wpa -i wlan0 reconfigure
+
+  GNU nano 5.4                                                           /etc/wpa_supplicant/wpa_supplicant.conf
+  
+  
+-----------------
+Set active wifi from command line. To do this initially you need
+
+    a) labtop
+    b) small wifi router that is paired with rasberry pi, always providing local LAN and therefore
+       keyboard, mouse and monitor access to rasberry pi via ssh.
+
+Configure well-known router to be priority=1, meaning that no matter what other netweorks are available
+if the router is plugged in and functioning you can access the rasberry pi through a labtop. Here's
+how you do it. In the example below "TP-Link_3AA3" is the wifi that is paired with rasberri pi to
+always provide, keyboard mount and monitor access
+
+    sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+
+        ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+        update_config=1
+        country=GB
+
+        network={
+                ssid="Galaxy Jay"
+                psk="Rn220kll"
+                key_mgmt=WPA-PSK
+        }
+        network={
+                ssid="WT hotspot 1a"
+                psk="westtisbury"
+                key_mgmt=WPA-PSK
+        }
+        network={
+                ssid="TP-Link_3AA3"
+                psk="20626303"
+                key_mgmt=WPA-PSK
+                priority=1
+        }
+        network={
+                ssid="OakbluffsLIB"
+                key_mgmt=NONE
+        }
+
+
+=======================
+How to show rasberry pi currently active wifi name 
+
+Open the Raspberry Pi command line
+Use the iwgetid utility
+Run the following command to return the network name, or SSID, the Wi-Fi network that your Pi is connected to:
+
+    iwgetid
+
+iwgetid is similar to the iwconfig utility you may have used before, except that its output is easier to parse.
+
+
+==========================
+How to list all available on rasberry pi
+
+    (iwlist wlan0 scanning) | grep ESSID
+
+
+=========================
+Run DataServer as a Daemon
+
+    sudo cat /etc/crontab
+
+        # Add the following line to /etc/crontab
+        @reboot jay1860 python <Root path to NinjaNIRS_ClientServerTCP>/main.py server
+

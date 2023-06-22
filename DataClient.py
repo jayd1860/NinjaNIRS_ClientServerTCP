@@ -7,9 +7,9 @@ def RecvData():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     #####################################################################
-    # Send server it's IP address
+    # Dterming and send server it's IP address
     #####################################################################
-    serverIpAddr = GetServerIpAddr()
+    serverIpAddr, s1 = GetServerIpAddr()
 
     #####################################################################
     # Connect to server and receive data stream
@@ -17,7 +17,7 @@ def RecvData():
     count = 0
     while count < 4:
         try:
-            sys.stdout.write('DataClient:  Attempt #%d to connect to socket on port %d\n'% (count, Settings.port))
+            sys.stdout.write('DataClient:   5. Attempt #%d to connect to %s on port %d\n'% (count, serverIpAddr, Settings.port))
             err = s.connect_ex((serverIpAddr, Settings.port))
             if err == 0:
                 break
@@ -25,12 +25,14 @@ def RecvData():
         except:
             sys.stdout.write('DataClient:  Failed to connect on port %d\n\n'% Settings.port)
         count = count+1
-        time.sleep(.3)
+        time.sleep(1)
     if err != 0:
-        sys.stdout.write('DataClient:  Exceeded max number of attempts to connect. Exiting ...\n')
+        sys.stdout.write('DataClient:   6. Exceeded max number of attempts to connect. Exiting ...\n')
+        s1.sendto('Failed to connect, close connection'.encode('utf-8'), (serverIpAddr, Settings.port1))
         s.close()
         return
-    sys.stdout.write('DataClient:  Connection Success!!\n')
+
+    sys.stdout.write('DataClient:   6. Connection Success!!\n')
     time.sleep(.5)
 
     # Receive data
@@ -44,38 +46,32 @@ def RecvData():
 
 # -------------------------------------------------------------------
 def GetServerIpAddr():
-    s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     s0.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    try:
-        serverIpAddr0 = socket.gethostbyname(Settings.servername)
-    except:
-        sys.stdout.write('DataClient:   Failed to find host %s\n' % Settings.servername)
-        if Settings.servername[-1] == '\n':
-            servernameTemp = Settings.servername[-1]
-        else:
-            servernameTemp = Settings.servername
-        servernameAlt = (servernameTemp + '.local')
-        sys.stdout.write('DataClient:   Will try host name %s\n' % servernameAlt)
-        try:
-            serverIpAddr0 = socket.gethostbyname(servernameAlt)
-        except:
-            serverIpAddr0 = '255.255.255.255'
+    s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    serverAddr = (serverIpAddr0, Settings.port0)
+    serverAddr0 = ("255.255.255.255", Settings.port0)
     s0.bind(('', Settings.port0))
-    s0.sendto(serverIpAddr0.encode('utf-8'), serverAddr)
-    time.sleep(1)
+    s1.bind(('', Settings.port1))
 
-    # Receive the client packet along with the address it is coming from
-    try:
-        message, serverIpAddr = s0.recvfrom(128)
-    except:
-        sys.stdout.write(
-            'DataClient:   recvfrom failed! Looks like server is offline. Waiting for server to come online ...\n')
-        time.sleep(1)
-        message, foo = s0.recvfrom(128)
-    sys.stdout.write('DataClient:   Received confirmation from server (IP: %s)  - %s!!! ...\n'% (serverIpAddr, message.decode()))
-    sys.stdout.write('\n')
+    # 1. Let the Handshaking begin. Send initial request to server
+    msg = 'DataClient:   1. Sending initial broadcat message to server\n'
+    sys.stdout.write(msg)
+    s0.sendto(msg.encode('utf-8'), serverAddr0)
+
+    # 2. Immediatly start waiting to receive server IP address
+    sys.stdout.write('DataClient:   2. Waiting to receive response from server\n')
+    message, serverIpAddr = s1.recvfrom(256)
+
+    # 3. Receive the client packet along with the address it is coming from
+    sys.stdout.write('DataClient:   3. Received msg from server (IP: %s):  "%s"\n'% (serverIpAddr[0], message.decode()))
     time.sleep(2)
+
+    # 4. Send server it's own IP address
+    sys.stdout.write('DataClient:   4. Sending server its address %s ...\n'% serverIpAddr[0])
+    serverAddr = (serverIpAddr[0], Settings.port1)
+    s1.sendto(serverIpAddr[0].encode('utf-8'), serverAddr)
+
+    return serverIpAddr
 
 
