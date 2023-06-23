@@ -30,8 +30,8 @@ def SendData():
         # 2. Received initial request. Wait 2 seconds for client to get ready to receive,
         #    then send client its own IP address
         time.sleep(2)
-        msg = 'DataServer:   2. Received INITIAL MESSAGE from client. Sending response\n'
-        sys.stdout.write(msg)
+        msg = 'DataServer:   2. Received INITIAL MESSAGE from client. Sending response'
+        sys.stdout.write(msg+'\n')
         s1.sendto(msg.encode('utf-8'), (clientIpAddr[0], Settings.port1))
 
         # 3. Wait to receive our own IP address
