@@ -17,7 +17,8 @@ def RecvData():
     count = 0
     while count < 4:
         try:
-            sys.stdout.write('DataClient:   5. Attempt #%d to connect to %s on port %d\n'% (count, serverIpAddr, Settings.port))
+            sys.stdout.write('DataClient:   5. Attempt #%d to connect to %s on port %d\n'%
+                             (count, serverIpAddr, Settings.port))
             err = s.connect_ex((serverIpAddr, Settings.port))
             if err == 0:
                 break
@@ -55,22 +56,24 @@ def GetServerIpAddr():
     s1.bind(('', Settings.port1))
 
     # 1. Let the Handshaking begin. Send initial request to server
-    msg = 'DataClient:   1. Sending initial broadcat message to server\n'
+    msg = 'DataClient:   1. Sending initial broadcast message to server\n'
     sys.stdout.write(msg)
     s0.sendto(msg.encode('utf-8'), serverAddr0)
 
-    # 2. Immediatly start waiting to receive server IP address
+    # 2. Immediately start waiting to receive server IP address
     sys.stdout.write('DataClient:   2. Waiting to receive response from server\n')
     message, serverIpAddr = s1.recvfrom(256)
 
     # 3. Receive the client packet along with the address it is coming from
-    sys.stdout.write('DataClient:   3. Received msg from server (IP: %s):  "%s"\n'% (serverIpAddr[0], message.decode()))
+    sys.stdout.write('DataClient:   3. Received msg from server (IP: %s):  "%s"\n'%
+                     (serverIpAddr[0], message.decode()))
     time.sleep(2)
 
-    # 4. Send server it's own IP address
+    # 4. Send server its own IP address
     sys.stdout.write('DataClient:   4. Sending server its address %s ...\n'% serverIpAddr[0])
     serverAddr = (serverIpAddr[0], Settings.port1)
     s1.sendto(serverIpAddr[0].encode('utf-8'), serverAddr)
+    time.sleep(2)
 
     return serverIpAddr
 
