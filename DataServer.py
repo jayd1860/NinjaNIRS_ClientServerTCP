@@ -7,16 +7,20 @@ import Settings
 def SendData():
     streamSocketBound = False
 
+    # Initial request socket
     server_address0 = ('', Settings.port0)
-    server_address1 = ('', Settings.port1)
-
     s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s0.bind(server_address0)
+
+    # Receive own IP address on this socket
+    server_address1 = ('', Settings.port1)
     s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s1.settimeout(1)
+    s1.bind(server_address1)
+
+    # Data stream socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-    s0.bind(server_address0)
-    s1.bind(server_address1)
 
     while True:
 
@@ -27,17 +31,21 @@ def SendData():
         sys.stdout.write('DataServer:   1. Waiting to receive INITIAL MESSAGE from client ...\n')
         initClientMsg, clientIpAddr = s0.recvfrom(256)
 
-        # 2. Received initial request. Wait 2 seconds for client to get ready to receive,
-        #    then send client its own IP address
-        time.sleep(2)
-        msg = 'DataServer:   2. Received INITIAL MESSAGE from client. Sending response'
-        sys.stdout.write(msg+'\n')
-        s1.sendto(msg.encode('utf-8'), (clientIpAddr[0], Settings.port1))
 
-        # 3. Wait to receive our own IP address
-        sys.stdout.write('DataServer:   3. Waiting to receive our own IP address from client ...\n')
-        time.sleep(2)
-        serverIpAddr, clientIpAddr = s1.recvfrom(256)
+        for ii in range(0, 10, 1):
+            # 2. Received initial request. Wait 2 seconds for client to get ready to receive,
+            #    then send client its own IP address
+            msg = 'DataServer:   2. Received INITIAL MESSAGE from client. Sending response'
+            sys.stdout.write(msg+'\n')
+            s1.sendto(msg.encode('utf-8'), (clientIpAddr[0], Settings.port1))
+
+            # 3. Wait to receive our own IP address
+            sys.stdout.write('DataServer:   3. Waiting to receive our own IP address from client ... attempt #%d\n'%  ii)
+            try:
+                serverIpAddr, clientIpAddr = s1.recvfrom(256)
+            except socket.error:
+                sys.stdout.write('DataServer:   3. Timed out waiting for client response. Will try again ...\n')
+                pass
 
         # 4. Wait to receive our own IP address
         sys.stdout.write('DataServer:   4. Receive our own IP address %s from client\n'% serverIpAddr.decode())

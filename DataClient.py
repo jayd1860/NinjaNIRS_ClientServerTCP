@@ -53,27 +53,28 @@ def RecvData():
 def GetServerIpAddr():
     s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     s0.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
     s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s1.settimeout(10)
+    s1.settimeout(1)
 
     serverIpAddr = ['','']
     serverAddr0 = ("255.255.255.255", Settings.port0)
     s0.bind(('', Settings.port0))
     s1.bind(('', Settings.port1))
 
-    # 1. Let the Handshaking begin. Send initial request to server
+    #### 1. Let the Handshaking begin. Send initial request to server
     msg = 'DataClient:   1. Sending initial broadcast message to server to port %d\n'% serverAddr0[1]
     sys.stdout.write(msg)
     s0.sendto(msg.encode('utf-8'), serverAddr0)
 
-    # 2. Immediately start waiting to receive server IP address
-    sys.stdout.write('DataClient:   2. Waiting maximum of 10 seconds to receive response from server\n')
-    try:
-        message, serverIpAddr = s1.recvfrom(256)
-    except:
-        sys.stdout.write('DataClient:   ERROR: timed out waiting for server response. Exiting ...\n')
-        s0.close()
-        return serverIpAddr[0], s1
+    #### 2. Immediately start waiting to receive server IP address
+    for ii in range(0, 10, 1):
+        sys.stdout.write('DataClient:   2. Waiting maximum of 10 seconds to receive response from server ... attempt #%d\n'% ii)
+        try:
+            message, serverIpAddr = s1.recvfrom(256)
+        except socket.error:
+            sys.stdout.write('DataClient:   2. Timed out waiting for server response. Will try again ...\n')
+            pass
 
     # 3. Receive the client packet along with the address it is coming from
     sys.stdout.write('DataClient:   3. Received msg from server (IP: %s):  "%s"\n'%
