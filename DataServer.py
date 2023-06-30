@@ -7,12 +7,6 @@ import Settings
 def SendData():
     streamSocketBound = False
 
-    # Initial request socket
-    server_address0 = ('', Settings.port0)
-    s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    # s0.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    s0.bind(server_address0)
-
     # Receive own IP address on this socket
     server_address1 = ('', Settings.port1)
     s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -24,6 +18,12 @@ def SendData():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     while True:
+
+        # Initial request socket
+        server_address0 = ('', Settings.port0)
+        s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        # s0.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        s0.bind(server_address0)
 
         #####################################################################
         # State 1-2: Get your own IP address from client
@@ -51,13 +51,11 @@ def SendData():
                     serverIpAddr, clientIpAddr = s1.recvfrom(256)
                     time.sleep(.5)
                     if len(serverIpAddr) > 0:
-                        sys.stdout.write('DataServer:   State 2.1. Attempt #%d to receive own IP address ????\n' % count)
                         break
                     sys.stdout.write('DataServer:   State 2. Attempt #%d to receive own IP address timed out. Trying again ...\n'%  count)
                 except socket.error:
                     sys.stdout.write('DataServer:   State 2. Attempt #%d to receive own IP address generated ERROR. Trying again ...\n'%  count)
             if len(serverIpAddr) > 0:
-                sys.stdout.write('DataServer:   State 2.2. Attempt #%d to receive own IP address ????\n' % count)
                 break
             sys.stdout.write('DataServer:   State 2.3. Attempt #%d to receive own IP address ????\n' % count)
         sys.stdout.write('\n')
@@ -101,4 +99,4 @@ def SendData():
         time.sleep(2)
         connection.close()
         sys.stdout.write(msg+'\n\n\n')
-
+        s0.close()
