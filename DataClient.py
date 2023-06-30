@@ -69,24 +69,23 @@ def GetServerIpAddr():
     serverIpAddr = ['','']
 
     serverAddr0 = ("255.255.255.255", Settings.port0)
-    #serverAddr0 = ("192.168.87.60", Settings.port0)
     s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     s0.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     s0.bind(('', Settings.port0))
 
     s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s1.settimeout(1)
+    s1.settimeout(.1)
     s1.bind(('', Settings.port1))
 
 
     ############################################################################################
     # State 1. Let the Handshaking begin. Send initial request to server
     ############################################################################################
-    maxInitAttempts = 10
+    maxInitAttempts = 50
     prefix = "S"
     for ii in range(1, maxInitAttempts, 1):
-        msg = 'DataClient:   State 1. %sending INITIAL broadcast message to server to (%s, %d)\n'% \
-              (prefix, serverAddr0[0], serverAddr0[1])
+        msg = 'DataClient:   State 1. %sending INITIAL broadcast message (attempt #%d) to server to (%s, %d)\n'% \
+              (prefix, ii, serverAddr0[0], serverAddr0[1])
         bannerStr = ('*' * len(msg)) + '\n'
         sys.stdout.write(bannerStr)
         sys.stdout.write(msg)
@@ -122,5 +121,4 @@ def GetServerIpAddr():
 
     sys.stdout.write('\n')
     return serverIpAddr, s1, message
-
 

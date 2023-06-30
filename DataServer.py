@@ -36,8 +36,7 @@ def SendData():
             sys.stdout.write('\n')
 
             serverIpAddr = ''
-            count = 1
-            while True:
+            for count in range(1, 10):
                 ####  State 2. Received initial request. Send client confirmation of INITIAL message receipt
                 msg = 'DataServer:   State 2. Received INITIAL MESSAGE from client (%s, %s). Sending response to (%s, %d)...'% \
                         (clientIpAddr[0], clientIpAddr[1], clientIpAddr[0], Settings.port1)
@@ -46,7 +45,8 @@ def SendData():
                 time.sleep(.5)
 
                 #### State 2. Wait to receive our own IP address
-                sys.stdout.write('DataServer:   State 2. Waiting to receive our own IP address from client ... attempt #%d\n'%  count)
+                sys.stdout.write('DataServer:   State 2. Waiting to receive our own IP address from client ... attempt #%d\n'%
+                                 count)
                 try:
                     serverIpAddr, clientIpAddr = s1.recvfrom(256)
                     time.sleep(.5)
@@ -60,7 +60,6 @@ def SendData():
                 sys.stdout.write('DataServer:   State 2.2. Attempt #%d to receive own IP address ????\n' % count)
                 break
             sys.stdout.write('DataServer:   State 2.3. Attempt #%d to receive own IP address ????\n' % count)
-            count = count + 1
         sys.stdout.write('\n')
 
 
