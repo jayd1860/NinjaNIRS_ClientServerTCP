@@ -82,14 +82,14 @@ def SendData():
             streamSocketBound = True
         s.listen(1)
         sys.stdout.write("DataServer:   State 3. Listening for connection  ...\n")
-        connection, client = s.accept()
+        connection, clientAddr = s.accept()
         time.sleep(2)
         sys.stdout.write('\n')
 
         ############################################################################################
         # State 5.  Connection has been established. Move into new state - send data stream
         ############################################################################################
-        sys.stdout.write("DataServer:  State 4. Connected to client IP: %s\n"% format(client))
+        sys.stdout.write("DataServer:  State 4. Connected to client (%s, %d)\n"%  (clientAddr[0], clientAddr[1]))
         for count in range(1, 11, 1):
             msg = ('DataServer:  State 4. This is data packet #%d' % count)
             connection.send(msg.encode('utf-8'))

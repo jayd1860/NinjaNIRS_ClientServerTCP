@@ -7,20 +7,19 @@ def RecvData():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     #####################################################################
-    # Dterming and send server it's IP address
+    #  State 2. Determine if we have server's IP address
     #####################################################################
     serverIpAddr, s1, message = GetServerIpAddr()
-    if len(serverIpAddr)==0:
+    if len(serverIpAddr)==0 or len(message)==0:
         s1.close()
         s.close()
         return
-
     sys.stdout.write('\n')
 
 
     ############################################################################################
-    # State 3:  Receive the client packet along with the address it is coming from.
-    #           Attempt to connect to server streamer
+    #  State 3:  Receive the client packet along with the address it is coming from.
+    #            Attempt to connect to server streamer
     #####################################################################
     sys.stdout.write('DataClient:   State 3. Received msg from server (IP: %s):  "%s"\n'%
                      (serverIpAddr[0], message.decode()))
@@ -84,9 +83,14 @@ def GetServerIpAddr():
     # State 1. Let the Handshaking begin. Send initial request to server
     ############################################################################################
     maxInitAttempts = 10
-    for ii in range(0, maxInitAttempts, 1):
-        msg = 'DataClient:   State 1. Sending INITIAL broadcast message to server to (%s, %d)\n'% (serverAddr0[0], serverAddr0[1])
+    prefix = "S"
+    for ii in range(1, maxInitAttempts, 1):
+        msg = 'DataClient:   State 1. %sending INITIAL broadcast message to server to (%s, %d)\n'% \
+              (prefix, serverAddr0[0], serverAddr0[1])
+        bannerStr = ('*' * len(msg)) + '\n'
+        sys.stdout.write(bannerStr)
         sys.stdout.write(msg)
+        sys.stdout.write(bannerStr)
         s0.sendto(msg.encode('utf-8'), serverAddr0)
         time.sleep(.5)
         sys.stdout.write('\n')
@@ -96,17 +100,19 @@ def GetServerIpAddr():
         ############################################################################################
         message = ''
         maxRecvAttempts = 5
-        for ii in range(0, maxRecvAttempts, 1):
+        for ii in range(1, maxRecvAttempts, 1):
             sys.stdout.write('DataClient:   State 2. Attempt #%d to receive response from server on port %d ...\n'% (ii, Settings.port1))
             try:
                 message, serverIpAddr = s1.recvfrom(256)
                 if len(message) > 0:
                     break
                 sys.stdout.write('DataClient:   State 2. Timed out waiting for server response. Will try again ...\n')
+                sys.stdout.write('\n')
             except socket.error:
                 sys.stdout.write('DataClient:   State 2. Error generated while waiting for server response. Will try again ...\n')
+                sys.stdout.write('\n')
                 pass
-
+        prefix = "Re-S"
         if len(message) > 0:
             break
 
