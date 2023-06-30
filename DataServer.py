@@ -25,71 +25,79 @@ def SendData():
     while True:
 
         #####################################################################
-        # Get your own IP address from client
+        # State 1-3: Get your own IP address from client
         #####################################################################
-        # 1. Waiting to receive initial request from client
-        sys.stdout.write('DataServer:   1. Waiting to receive INITIAL MESSAGE from client ...\n')
-        initClientMsg, clientIpAddr = s0.recvfrom(256)
+        while True:
+            ####  State 1. Waiting to receive initial request from client
+            sys.stdout.write('DataServer:   State 1. Waiting to receive INITIAL MESSAGE from client ...\n')
+            initClientMsg, clientIpAddr = s0.recvfrom(256)
 
+            serverIpAddr = ''
+            for ii in range(0, 10, 1):
+                ####  State 2. Received initial request. Send client confirmation of INITIAL message receipt
+                msg = 'DataServer:   State 2. Received INITIAL MESSAGE from client. Sending response ...'
+                sys.stdout.write(msg + '\n')
+                s1.sendto(msg.encode('utf-8'), (clientIpAddr[0], Settings.port1))
 
-        for ii in range(0, 10, 1):
-            # 2. Received initial request. Wait 2 seconds for client to get ready to receive,
-            #    then send client its own IP address
-            msg = 'DataServer:   2. Received INITIAL MESSAGE from client. Sending response'
-            sys.stdout.write(msg+'\n')
-            s1.sendto(msg.encode('utf-8'), (clientIpAddr[0], Settings.port1))
+                sys.stdout.write('\n')
 
-            # 3. Wait to receive our own IP address
-            sys.stdout.write('DataServer:   3. Waiting to receive our own IP address from client ... attempt #%d\n'%  ii)
-            try:
-                serverIpAddr, clientIpAddr = s1.recvfrom(256)
-            except socket.error:
-                sys.stdout.write('DataServer:   3. Timed out waiting for client response. Will try again ...\n')
+                #### State 3. Wait to receive our own IP address
+                sys.stdout.write('DataServer:   State 3. Waiting to receive our own IP address from client ... attempt #%d\n'%  ii)
+                try:
+                    serverIpAddr, clientIpAddr = s1.recvfrom(256)
+                except socket.error:
+                    sys.stdout.write('DataServer:   State 3. Attempt #%d to receive own IP address timed out. Trying again ...\n'% ii)
+                    pass
+
+            ####  State 3: Handle failure to connect to server by going back to State 1: waiting for INITIAL MESSAGE
+            if not serverIpAddr:
+                sys.stdout.write('DataServer:   State 3. Was not able to connect to receive message ... Exiting \n')
                 pass
 
-        # 4. Wait to receive our own IP address
-        sys.stdout.write('DataServer:   4. Receive our own IP address %s from client\n'% serverIpAddr.decode())
+            # Otherwise break out
+            break
 
-
-        #####################################################################
-        # Listen for and accept client connection then stream data to it
-        #####################################################################
-        server_address = (serverIpAddr.decode(), Settings.port)
         sys.stdout.write('\n')
 
-        # Bind the socket to server (our own local) address and local port
-        sys.stdout.write('DataServer:   5. Opening and binding stream socket to IP address %s, port %d\n'%
-                         (serverIpAddr.decode(), Settings.port))
 
+        ############################################################################################
+        # State 4. We received our own IP address. Now move into nw state - bind stream socket to
+        # our IP address and port and then start listening on it for connection request
+        ############################################################################################
+        sys.stdout.write('DataServer:   State 4. Received our own IP address %s from client\n'% serverIpAddr.decode())
+
+        # Listen for and accept client connection then stream data to it
+        server_address = (serverIpAddr.decode(), Settings.port)
+
+        # Bind the socket to server (our own local) address and local port.
         # Bind stream socket only once for the life of a server session
+        sys.stdout.write('DataServer:   State 4. Opening and binding stream socket to IP address %s, port %d\n'%
+                         (serverIpAddr.decode(), Settings.port))
         if not streamSocketBound:
             s.bind(server_address)
             streamSocketBound = True
-
         s.listen(1)
-        sys.stdout.write("DataServer:   6. Waiting for connection  ...\n")
+        sys.stdout.write("DataServer:   State 4. Listening for connection  ...\n")
         connection, client = s.accept()
         time.sleep(2)
-        sys.stdout.write("DataServer:  7. Connected to client IP: %s\n"% format(client))
+        sys.stdout.write('\n')
 
-        # Send data stream
-        count = 1
-        while count < 10:
-            msg = ('DataServer:  This is data packet #%d' % count)
+        ############################################################################################
+        # State 5.  Connection has been established. Move into new state - send data stream
+        ############################################################################################
+        sys.stdout.write("DataServer:  State 5. Connected to client IP: %s\n"% format(client))
+        for count in range(1, 11, 1):
+            msg = ('DataServer:  State 5. This is data packet #%d' % count)
             connection.send(msg.encode('utf-8'))
             sys.stdout.write(msg+'\n')
             time.sleep(1)
-            count = count+1
 
         # Wait before closing connection to let last packet be received
-        msg = 'DataServer:  Sent last message and closed connection ... goodbye'
+        msg = 'DataServer:  State 5. Sent last message and closed connection ...'
         connection.send(msg.encode('utf-8'))
         time.sleep(2)
         connection.close()
-        sys.stdout.write(msg+'\n')
+        sys.stdout.write(msg+'\n\n')
 
-    s.close()
-    s1.close()
-    s0.close()
 
 
