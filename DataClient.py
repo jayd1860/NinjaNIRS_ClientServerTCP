@@ -34,8 +34,8 @@ def RecvData():
     for count in range(1, 5, 1):
         try:
             sys.stdout.write('DataClient:   State 3. Attempt #%d to connect to server data streamer at (%s, %d)\n'%
-                             (count, serverIpAddr, Settings.port))
-            err = s.connect_ex((serverIpAddr, Settings.port))
+                             (count, serverIpAddr[0], Settings.port))
+            err = s.connect_ex((serverIpAddr[0], Settings.port))
             if err == 0:
                 break
             sys.stdout.write('DataClient:  State 3. Failed to connect on port %d\n'% Settings.port)
@@ -44,7 +44,7 @@ def RecvData():
         time.sleep(1)
     if err != 0:
         sys.stdout.write('DataClient:   State 3. Exceeded max number of attempts to connect. Exiting ...\n')
-        s1.sendto('Failed to connect, close connection'.encode('utf-8'), (serverIpAddr, Settings.port1))
+        s1.sendto('Failed to connect, close connection'.encode('utf-8'), (serverIpAddr[0], Settings.port1))
         s.close()
         return
     sys.stdout.write('\n')
@@ -69,8 +69,8 @@ def RecvData():
 def GetServerIpAddr():
     serverIpAddr = ['','']
 
-    #serverAddr0 = ("255.255.255.255", Settings.port0)
-    serverAddr0 = ("192.168.87.249", Settings.port0)
+    serverAddr0 = ("255.255.255.255", Settings.port0)
+    #serverAddr0 = ("192.168.87.60", Settings.port0)
     s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     s0.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     s0.bind(('', Settings.port0))
@@ -83,33 +83,36 @@ def GetServerIpAddr():
     ############################################################################################
     # State 1. Let the Handshaking begin. Send initial request to server
     ############################################################################################
-    msg = 'DataClient:   State 1. Sending INITIAL broadcast message to server to (%s, %d)\n'% (serverAddr0[0], serverAddr0[1])
-    sys.stdout.write(msg)
-    s0.sendto(msg.encode('utf-8'), serverAddr0)
-    time.sleep(.5)
-    sys.stdout.write('\n')
+    maxInitAttempts = 10
+    for ii in range(0, maxInitAttempts, 1):
+        msg = 'DataClient:   State 1. Sending INITIAL broadcast message to server to (%s, %d)\n'% (serverAddr0[0], serverAddr0[1])
+        sys.stdout.write(msg)
+        s0.sendto(msg.encode('utf-8'), serverAddr0)
+        time.sleep(.5)
+        sys.stdout.write('\n')
 
+        ############################################################################################
+        # State 2. Immediately start waiting to receive server IP address
+        ############################################################################################
+        message = ''
+        maxRecvAttempts = 5
+        for ii in range(0, maxRecvAttempts, 1):
+            sys.stdout.write('DataClient:   State 2. Attempt #%d to receive response from server on port %d ...\n'% (ii, Settings.port1))
+            try:
+                message, serverIpAddr = s1.recvfrom(256)
+                if len(message) > 0:
+                    break
+                sys.stdout.write('DataClient:   State 2. Timed out waiting for server response. Will try again ...\n')
+            except socket.error:
+                sys.stdout.write('DataClient:   State 2. Error generated while waiting for server response. Will try again ...\n')
+                pass
 
-    ############################################################################################
-    # State 2. Immediately start waiting to receive server IP address
-    ############################################################################################
-    message = ''
-    maxRecvAttempts = 50
-    for ii in range(0, maxRecvAttempts, 1):
-        sys.stdout.write('DataClient:   State 2. Attempt #%d to receive response from server on port %d ...\n'% (ii, Settings.port1))
-        try:
-            message, serverIpAddr = s1.recvfrom(256)
-            if len(message) > 0:
-                break
-            sys.stdout.write('DataClient:   State 2. Timed out waiting for server response. Will try again ...\n')
-        except socket.error:
-            sys.stdout.write('DataClient:   State 2. Error generated while waiting for server response. Will try again ...\n')
-            pass
+        if len(message) > 0:
+            break
 
     # Handle failure to connect to server by exiting
     if not message:
-        sys.stdout.write('DataClient:   State 2. Was not able to connect to server ... Exiting \n')
-        return
+        sys.stdout.write('DataClient:   State 2. Did not receive response from server ... Exiting \n')
 
     sys.stdout.write('\n')
     return serverIpAddr, s1, message
