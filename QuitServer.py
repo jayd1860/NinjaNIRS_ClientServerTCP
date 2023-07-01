@@ -28,7 +28,7 @@ def QuitServer():
         sys.stdout.write(bannerStr)
         sys.stdout.write(msg)
         sys.stdout.write(bannerStr)
-        s0.sendto(msg.encode('utf-8'), serverAddr0)
+        s0.sendto(quitmsg.encode('utf-8'), serverAddr0)
         time.sleep(.5)
         sys.stdout.write('\n')
 
