@@ -3,7 +3,7 @@ import time
 import socket
 import Settings
 
-def RecvData():
+def DataClient():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     #####################################################################

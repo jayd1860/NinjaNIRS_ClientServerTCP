@@ -4,39 +4,48 @@ import socket
 import Settings
 
 
-def SendData():
+def DataServer():
     streamSocketBound = False
 
     # Receive own IP address on this socket
     server_address1 = ('', Settings.port1)
     s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s1.settimeout(1)
+    s1.settimeout(.5)
     s1.bind(server_address1)
 
     # Data stream socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    while True:
+    while True:         # This is main server loop for an entire aquisition session
 
-        # Initial request socket
-        server_address0 = ('', Settings.port0)
-        s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        # s0.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        s0.bind(server_address0)
+        while True:         # This is the loop for getting our own IP address. If it fails we go back to state 1
 
-        #####################################################################
-        # State 1-2: Get your own IP address from client
-        #####################################################################
-        while True:
-            ####  State 1. Waiting to receive initial request from client
-            sys.stdout.write('DataServer:   State 1. Waiting to receive INITIAL MESSAGE from client on port %d...\n'% Settings.port0)
+            #####################################################################
+            # State 1-2: Get your own IP address from client
+            #####################################################################
+
+            # Set up initial request socket
+            server_address0 = ('', Settings.port0)
+            s0 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+            s0.bind(server_address0)
+
+            #  State 1. Waiting to receive initial request from client
+            msg = 'DataServer:   State 1. Waiting to receive INITIAL MESSAGE from client on port %d...\n'% Settings.port0
+            bannerStr = ('*' * len(msg)) + '\n'
+            sys.stdout.write(bannerStr)
+            sys.stdout.write(msg)
+            sys.stdout.write(bannerStr)
             initClientMsg, clientIpAddr = s0.recvfrom(256)
-            time.sleep(1)
+            if initClientMsg == 'QUIT':
+                sys.stdout.write('Received QUIT command ... Exiting\n')
+                return
             sys.stdout.write('\n')
+            time.sleep(.5)
 
             serverIpAddr = ''
-            for count in range(1, 10):
+            maxRecvAttempts = 10
+            for count in range(1, maxRecvAttempts):
                 ####  State 2. Received initial request. Send client confirmation of INITIAL message receipt
                 msg = 'DataServer:   State 2. Received INITIAL MESSAGE from client (%s, %s). Sending response to (%s, %d)...'% \
                         (clientIpAddr[0], clientIpAddr[1], clientIpAddr[0], Settings.port1)
@@ -49,17 +58,17 @@ def SendData():
                                  count)
                 try:
                     serverIpAddr, clientIpAddr = s1.recvfrom(256)
-                    time.sleep(.5)
                     if len(serverIpAddr) > 0:
                         break
                     sys.stdout.write('DataServer:   State 2. Attempt #%d to receive own IP address timed out. Trying again ...\n'%  count)
                 except socket.error:
                     sys.stdout.write('DataServer:   State 2. Attempt #%d to receive own IP address generated ERROR. Trying again ...\n'%  count)
+
             if len(serverIpAddr) > 0:
                 break
-            sys.stdout.write('DataServer:   State 2.3. Attempt #%d to receive own IP address ????\n' % count)
-        sys.stdout.write('\n')
+            s0.close()
 
+        sys.stdout.write('\n')
 
         ############################################################################################
         # State 4. We received our own IP address. Now move into nw state - bind stream socket to
