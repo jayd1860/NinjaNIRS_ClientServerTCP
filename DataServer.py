@@ -64,6 +64,7 @@ def DataServer():
                 except socket.error:
                     sys.stdout.write('DataServer:   State 2. Attempt #%d to receive own IP address generated ERROR. Trying again ...\n'%  count)
 
+            sys.stdout.write('\n')
             if len(serverIpAddr) > 0:
                 break
             s0.close()

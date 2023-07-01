@@ -11,6 +11,10 @@ def QuitServer():
     s0.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     s0.bind(('', Settings.port0))
 
+    s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s1.settimeout(.1)
+    s1.bind(('', Settings.port1))
+
     ############################################################################################
     # State 1. Let the Handshaking begin. Send initial request to server
     ############################################################################################
@@ -54,5 +58,4 @@ def QuitServer():
         sys.stdout.write('DataClient:   State 2. Did not receive response from server ... Exiting \n')
 
     sys.stdout.write('\n')
-    return serverIpAddr, s1, message
 
