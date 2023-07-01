@@ -37,9 +37,6 @@ def DataServer():
             sys.stdout.write(msg)
             sys.stdout.write(bannerStr)
             initClientMsg, clientIpAddr = s0.recvfrom(256)
-            if initClientMsg == 'QUIT':
-                sys.stdout.write('Received QUIT command ... Exiting\n')
-                return
             sys.stdout.write('\n')
             time.sleep(.5)
 
@@ -67,6 +64,9 @@ def DataServer():
             sys.stdout.write('\n')
             if len(serverIpAddr) > 0:
                 break
+            if initClientMsg.decode() == 'QUIT':
+                sys.stdout.write('Received QUIT command ... Exiting\n')
+                return
             s0.close()
 
         sys.stdout.write('\n')
