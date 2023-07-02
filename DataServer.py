@@ -13,11 +13,6 @@ def DataServer(logger):
     s1.settimeout(.5)
     s1.bind(server_address1)
 
-    # Data stream socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.settimeout(60)
-
     while True:         # This is main server loop for an entire aquisition session
 
         while True:         # This is the loop for getting our own IP address. If it fails we go back to state 1
@@ -73,13 +68,17 @@ def DataServer(logger):
 
 
         ############################################################################################
-        # State 3. We received our own IP address. Now move into nw state - bind stream socket to
-        # our IP address and port and then start listening on it for connection request
+        # State 3. We received our own IP address. Now move into new state - create and bind
+        # stream socket to our IP address and port and then start listening on it for connection
+        # request
         ############################################################################################
         logger.Write('DataServer:   State 3. Received our own IP address %s from client\n'% serverIpAddr.decode())
 
-        # Listen for and accept client connection then stream data to it
+        # Create stream socket
         server_address = (serverIpAddr.decode(), Settings.port)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.settimeout(60)
 
         # Bind the socket to server (our own local) address and local port.
         # Bind stream socket only once for the life of a server session
@@ -88,6 +87,8 @@ def DataServer(logger):
         if not streamSocketBound:
             s.bind(server_address)
             streamSocketBound = True
+
+        # Listen for and accept client connection then stream data to it
         s.listen(1)
         logger.Write("DataServer:   State 3. Listening for connection  ...\n")
         try:
@@ -113,5 +114,7 @@ def DataServer(logger):
         s2.send(msg.encode('utf-8'))
         time.sleep(2)
         s2.close()
+        s.close()
         logger.Write(msg+'\n\n\n')
         s0.close()
+
