@@ -2,7 +2,6 @@ import sys
 import time
 import socket
 import Settings
-from Logger import Logger
 
 
 def DataServer(logger):
@@ -53,8 +52,7 @@ def DataServer(logger):
                 time.sleep(.5)
 
                 # State 2. Wait to receive our own IP address
-                logger.Write('DataServer:   State 2. Waiting to receive our own IP address from client ... attempt #%d\n'%
-                                 count)
+                logger.Write('DataServer:   State 2. Waiting to receive our own IP address from client ... attempt #%d\n'% count)
                 try:
                     serverIpAddr, clientIpAddr = s1.recvfrom(256)
                     if len(serverIpAddr) > 0:
@@ -62,16 +60,17 @@ def DataServer(logger):
                     logger.Write('DataServer:   State 2. Attempt #%d to receive own IP address timed out. Trying again ...\n'%  count)
                 except socket.error:
                     logger.Write('DataServer:   State 2. Attempt #%d to receive own IP address generated ERROR. Trying again ...\n'%  count)
-
             sys.stdout.write('\n')
             if len(serverIpAddr) > 0:
+                if serverIpAddr == 'Failed to connect, close connection':
+                    continue
                 break
             if initClientMsg.decode() == 'QUIT':
                 logger.Write('Received QUIT command ... Exiting\n')
                 return
             s0.close()
-
         sys.stdout.write('\n')
+
 
         ############################################################################################
         # State 3. We received our own IP address. Now move into nw state - bind stream socket to
@@ -91,7 +90,11 @@ def DataServer(logger):
             streamSocketBound = True
         s.listen(1)
         logger.Write("DataServer:   State 3. Listening for connection  ...\n")
-        s2, clientAddr = s.accept()
+        try:
+            s2, clientAddr = s.accept()
+        except:
+            logger.Write("DataServer:  State 3. Accept timed out ... Going back to state 1\n\n")
+            continue
         time.sleep(2)
         logger.Write('\n')
 

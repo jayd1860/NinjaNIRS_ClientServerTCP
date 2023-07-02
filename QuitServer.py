@@ -3,7 +3,7 @@ import time
 import socket
 import Settings
 
-def QuitServer():
+def QuitServer(logger):
     serverIpAddr = ['','']
 
     serverAddr0 = ("255.255.255.255", Settings.port0)
