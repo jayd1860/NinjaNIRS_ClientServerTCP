@@ -3,8 +3,10 @@ import time
 import socket
 import Settings
 
-def DataClient():
+
+def DataClient(logger):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(10)
 
     #####################################################################
     #  State 2. Determine if we have server's IP address
@@ -55,8 +57,14 @@ def DataClient():
     sys.stdout.write('DataClient:   State 4. Connection Success!!\n')
     time.sleep(.5)
     while True:
-        d = s.recv(256)
+        try:
+            d = s.recv(256)
+        except:
+            sys.stdout.write('DataClient:   State 4: ERROR: Timed out waiting for data ...\n')
+            break
+
         if len(d)==0:
+            sys.stdout.write('DataClient:   State 4: No more data was received ...\n')
             break
         sys.stdout.write('DataClient:   State 4: Message from server received:  \"%s\"\n' % d.decode())
     s.close()

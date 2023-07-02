@@ -2,9 +2,10 @@ import sys
 import time
 import socket
 import Settings
+from Logger import Logger
 
 
-def DataServer():
+def DataServer(logger):
     streamSocketBound = False
 
     # Receive own IP address on this socket
@@ -16,6 +17,7 @@ def DataServer():
     # Data stream socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.settimeout(60)
 
     while True:         # This is main server loop for an entire aquisition session
 
@@ -33,80 +35,80 @@ def DataServer():
             #  State 1. Waiting to receive initial request from client
             msg = 'DataServer:   State 1. Waiting to receive INITIAL MESSAGE from client on port %d...\n'% Settings.port0
             bannerStr = ('*' * len(msg)) + '\n'
-            sys.stdout.write(bannerStr)
-            sys.stdout.write(msg)
-            sys.stdout.write(bannerStr)
+            logger.Write(bannerStr)
+            logger.Write(msg)
+            logger.Write(bannerStr)
             initClientMsg, clientIpAddr = s0.recvfrom(256)
-            sys.stdout.write('\n')
+            logger.Write('\n')
             time.sleep(.5)
 
             serverIpAddr = ''
             maxRecvAttempts = 10
             for count in range(1, maxRecvAttempts):
-                ####  State 2. Received initial request. Send client confirmation of INITIAL message receipt
+                #  State 2. Received initial request. Send client confirmation of INITIAL message receipt
                 msg = 'DataServer:   State 2. Received INITIAL MESSAGE from client (%s, %s). Sending response to (%s, %d)...'% \
                         (clientIpAddr[0], clientIpAddr[1], clientIpAddr[0], Settings.port1)
-                sys.stdout.write(msg + '\n')
+                logger.Write(msg + '\n')
                 s1.sendto(msg.encode('utf-8'), (clientIpAddr[0], Settings.port1))
                 time.sleep(.5)
 
-                #### State 2. Wait to receive our own IP address
-                sys.stdout.write('DataServer:   State 2. Waiting to receive our own IP address from client ... attempt #%d\n'%
+                # State 2. Wait to receive our own IP address
+                logger.Write('DataServer:   State 2. Waiting to receive our own IP address from client ... attempt #%d\n'%
                                  count)
                 try:
                     serverIpAddr, clientIpAddr = s1.recvfrom(256)
                     if len(serverIpAddr) > 0:
                         break
-                    sys.stdout.write('DataServer:   State 2. Attempt #%d to receive own IP address timed out. Trying again ...\n'%  count)
+                    logger.Write('DataServer:   State 2. Attempt #%d to receive own IP address timed out. Trying again ...\n'%  count)
                 except socket.error:
-                    sys.stdout.write('DataServer:   State 2. Attempt #%d to receive own IP address generated ERROR. Trying again ...\n'%  count)
+                    logger.Write('DataServer:   State 2. Attempt #%d to receive own IP address generated ERROR. Trying again ...\n'%  count)
 
             sys.stdout.write('\n')
             if len(serverIpAddr) > 0:
                 break
             if initClientMsg.decode() == 'QUIT':
-                sys.stdout.write('Received QUIT command ... Exiting\n')
+                logger.Write('Received QUIT command ... Exiting\n')
                 return
             s0.close()
 
         sys.stdout.write('\n')
 
         ############################################################################################
-        # State 4. We received our own IP address. Now move into nw state - bind stream socket to
+        # State 3. We received our own IP address. Now move into nw state - bind stream socket to
         # our IP address and port and then start listening on it for connection request
         ############################################################################################
-        sys.stdout.write('DataServer:   State 3. Received our own IP address %s from client\n'% serverIpAddr.decode())
+        logger.Write('DataServer:   State 3. Received our own IP address %s from client\n'% serverIpAddr.decode())
 
         # Listen for and accept client connection then stream data to it
         server_address = (serverIpAddr.decode(), Settings.port)
 
         # Bind the socket to server (our own local) address and local port.
         # Bind stream socket only once for the life of a server session
-        sys.stdout.write('DataServer:   State 3. Opening, binding and listening on stream socket (%s, %d)\n'%
+        logger.Write('DataServer:   State 3. Opening, binding and listening on stream socket (%s, %d)\n'%
                          (serverIpAddr.decode(), Settings.port))
         if not streamSocketBound:
             s.bind(server_address)
             streamSocketBound = True
         s.listen(1)
-        sys.stdout.write("DataServer:   State 3. Listening for connection  ...\n")
-        connection, clientAddr = s.accept()
+        logger.Write("DataServer:   State 3. Listening for connection  ...\n")
+        s2, clientAddr = s.accept()
         time.sleep(2)
-        sys.stdout.write('\n')
+        logger.Write('\n')
 
         ############################################################################################
         # State 5.  Connection has been established. Move into new state - send data stream
         ############################################################################################
-        sys.stdout.write("DataServer:  State 4. Connected to client (%s, %d)\n"%  (clientAddr[0], clientAddr[1]))
+        logger.Write("DataServer:  State 4. Connected to client (%s, %d)\n"%  (clientAddr[0], clientAddr[1]))
         for count in range(1, 11, 1):
             msg = ('DataServer:  State 4. This is data packet #%d' % count)
-            connection.send(msg.encode('utf-8'))
-            sys.stdout.write(msg+'\n')
+            s2.send(msg.encode('utf-8'))
+            logger.Write(msg+'\n')
             time.sleep(1)
 
         # Wait before closing connection to let last packet be received
         msg = 'DataServer:  State 4. Sent last message and closed connection ...'
-        connection.send(msg.encode('utf-8'))
+        s2.send(msg.encode('utf-8'))
         time.sleep(2)
-        connection.close()
-        sys.stdout.write(msg+'\n\n\n')
+        s2.close()
+        logger.Write(msg+'\n\n\n')
         s0.close()
