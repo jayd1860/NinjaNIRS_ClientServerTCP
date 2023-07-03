@@ -23,7 +23,7 @@ def QuitServer(logger):
     for ii in range(1, maxInitAttempts, 1):
         quitmsg = 'QUIT'
         msg = 'DataClient:   State 1. %sending QUIT broadcast message (attempt #%d) to server to (%s, %d)\n'% \
-              (prefix, ii, serverAddr0[0], serverAddr0[1])
+                (prefix, ii, serverAddr0[0], serverAddr0[1])
         bannerStr = ('*' * len(msg)) + '\n'
         sys.stdout.write(bannerStr)
         sys.stdout.write(msg)
@@ -37,8 +37,8 @@ def QuitServer(logger):
         ############################################################################################
         message = ''
         maxRecvAttempts = 5
-        for ii in range(1, maxRecvAttempts, 1):
-            sys.stdout.write('DataClient:   State 2. Attempt #%d to receive response from server on port %d ...\n'% (ii, Settings.port1))
+        for kk in range(1, maxRecvAttempts, 1):
+            sys.stdout.write('DataClient:   State 2. Attempt #%d to receive response from server on port %d ...\n'% (kk, Settings.port1))
             try:
                 message, serverIpAddr = s1.recvfrom(256)
                 if len(message) > 0:
