@@ -95,8 +95,8 @@ def DataServer(logger):
         try:
             s2, clientAddr = s.accept()
         except:
-            logger.Write("DataServer:  State 3. Accept timed out ... Going back to state 1\n\n")
-            continue
+            logger.Write("DataServer:  State 3. Accept timed out ... Exiting\n\n")
+            return
         time.sleep(2)
         logger.Write('\n')
 
@@ -118,4 +118,5 @@ def DataServer(logger):
         s2.close()
         logger.Write(msg+'\n\n\n')
         s0.close()
+
 
