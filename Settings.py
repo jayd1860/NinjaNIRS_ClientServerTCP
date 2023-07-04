@@ -4,6 +4,8 @@ port0 = 6037
 port1 = 6038
 port = 6021
 
-N = 8
-nRows = 16
+N = 1024
+nRows = 128
+wordSize = np.dtype(np.uint32).itemsize
+chunkSize = N * wordSize
 buff = np.uint32([range(0,N)] * nRows)

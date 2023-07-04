@@ -60,7 +60,7 @@ def DataClient(logger):
     count = 1
     while True:
         try:
-            d = s.recv(4096)
+            d = s.recv(Settings.chunkSize)
         except:
             sys.stdout.write('DataClient:   State 4: ERROR: Timed out waiting for data ...\n')
             break
@@ -68,7 +68,7 @@ def DataClient(logger):
         if len(d)==0:
             sys.stdout.write('DataClient:   State 4: No more data was received ...\n')
             break
-        if len(d)%4 == 0:
+        if (len(d) % Settings.wordSize) == 0:
             frame = np.frombuffer(d, np.uint32)
             sys.stdout.write('DataClient:   State 4:   Received frame[#%d]:  [%d ... %d]\n' % (count, frame[0], frame[-1]))
         else:
@@ -114,8 +114,8 @@ def GetServerIpAddr():
         ############################################################################################
         message = ''
         maxRecvAttempts = 5
-        for ii in range(1, maxRecvAttempts, 1):
-            sys.stdout.write('DataClient:   State 2. Attempt #%d to receive response from server on port %d ...\n'% (ii, Settings.port1))
+        for kk in range(1, maxRecvAttempts, 1):
+            sys.stdout.write('DataClient:   State 2. Attempt #%d to receive response from server on port %d ...\n'% (kk, Settings.port1))
             try:
                 message, serverIpAddr = s1.recvfrom(256)
                 if len(message) > 0:
@@ -125,7 +125,7 @@ def GetServerIpAddr():
             except socket.error:
                 sys.stdout.write('DataClient:   State 2. Error generated while waiting for server response. Will try again ...\n')
                 sys.stdout.write('\n')
-                pass
+                continue
         prefix = "Re-S"
         if len(message) > 0:
             break

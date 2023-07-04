@@ -111,8 +111,6 @@ def DataServer(logger):
         ThroughPutTest(s2, logger)
 
         # Wait before closing connection to let last packet be received
-        msg = 'DataServer:  State 4. Sent last message and closed connection ...'
-        s2.send(msg.encode('utf-8'))
         time.sleep(2)
         s2.shutdown(1)
         s2.close()
@@ -130,4 +128,4 @@ def ThroughPutTest(s, logger):
         msg = ('DataServer:  Sending  frame[#%d]:  [%d ... %d]\n'% (iRow+1, frame0[0], frame0[sz[1]-1]))
         logger.Write(msg)
         s.send(frame)
-        time.sleep(1)
+        time.sleep(.2)
