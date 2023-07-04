@@ -1,6 +1,7 @@
 import sys
 import time
 import socket
+import numpy as np
 import Settings
 
 
@@ -56,9 +57,10 @@ def DataClient(logger):
     #####################################################################
     sys.stdout.write('DataClient:   State 4. Connection Success!!\n')
     time.sleep(.5)
+    count = 1
     while True:
         try:
-            d = s.recv(256)
+            d = s.recv(4096)
         except:
             sys.stdout.write('DataClient:   State 4: ERROR: Timed out waiting for data ...\n')
             break
@@ -66,7 +68,9 @@ def DataClient(logger):
         if len(d)==0:
             sys.stdout.write('DataClient:   State 4: No more data was received ...\n')
             break
-        sys.stdout.write('DataClient:   State 4: Message from server received:  \"%s\"\n' % d.decode())
+        frame = np.frombuffer(d, np.uint32)
+        sys.stdout.write('DataClient:   State 4:   Received frame[#%d]:  [%d ... %d]\n' % (count, frame[0], frame[-1]))
+        count = count+1
     s.close()
     sys.stdout.write('\n')
 
@@ -129,4 +133,5 @@ def GetServerIpAddr():
 
     sys.stdout.write('\n')
     return serverIpAddr, s1, message
+
 

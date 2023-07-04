@@ -4,6 +4,7 @@ import socket
 import Settings
 
 
+# ---------------------------------------------------------------------------
 def DataServer(logger):
     streamSocketBound = False
 
@@ -104,11 +105,8 @@ def DataServer(logger):
         # State 5.  Connection has been established. Move into new state - send data stream
         ############################################################################################
         logger.Write("DataServer:  State 4. Connected to client (%s, %d)\n"%  (clientAddr[0], clientAddr[1]))
-        for count in range(1, 11, 1):
-            msg = ('DataServer:  State 4. This is data packet #%d' % count)
-            s2.send(msg.encode('utf-8'))
-            logger.Write(msg+'\n')
-            time.sleep(1)
+
+        ThroughPutTest(s2, logger)
 
         # Wait before closing connection to let last packet be received
         msg = 'DataServer:  State 4. Sent last message and closed connection ...'
@@ -119,4 +117,17 @@ def DataServer(logger):
         logger.Write(msg+'\n\n\n')
         s0.close()
 
+
+
+# --------------------------------------------------------------------
+def ThroughPutTest(s, logger):
+    global buff
+    sz = buff.shape
+
+    for iRow in range(0, sz[0]):
+        frame = buff[iRow].tobytes()
+        msg = ('DataServer:  Sending  frame[#%d]:  [%d ... %d]\n'% (iRow, frame[0], frame[sz[1]-1]))
+        logger.Write(msg)
+        s.send(frame)
+        time.sleep(1)
 
