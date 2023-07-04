@@ -69,10 +69,10 @@ def DataClient(logger):
             sys.stdout.write('DataClient:   State 4: No more data was received ...\n')
             break
         if (len(d) % Settings.wordSize) == 0:
-            frame = np.frombuffer(d, np.uint32)
-            sys.stdout.write('DataClient:   State 4:   Received frame[#%d]:  [%d ... %d]\n' % (count, frame[0], frame[-1]))
+            words = np.frombuffer(d, np.uint32)
+            sys.stdout.write('DataClient:   State 4:   Received chunk #%d, size %d:  first word=%d ... last word=%d\n' % (count, len(d), words[0], words[-1]))
         else:
-            sys.stdout.write('DataClient:   State 4:   Received %s\n' % d.decode())
+            sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(d)))
         count = count+1
     s.close()
     sys.stdout.write('\n')

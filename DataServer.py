@@ -123,9 +123,9 @@ def DataServer(logger):
 def ThroughPutTest(s, logger):
     sz = buff.shape
     for iRow in range(0, sz[0]):
-        frame = buff[iRow].tobytes()
-        frame0 = np.frombuffer(frame, np.uint32)
-        msg = ('DataServer:  Sending  frame[#%d]:  [%d ... %d]\n'% (iRow+1, frame0[0], frame0[sz[1]-1]))
+        chunk = buff[iRow].tobytes()
+        chunk0 = np.frombuffer(chunk, np.uint32)
+        msg = ('DataServer:  Sending  chunk #%d:   first word=%d ... last word=%d\n'% (iRow+1, chunk0[0], chunk0[sz[1]-1]))
         logger.Write(msg)
-        s.send(frame)
+        s.send(chunk)
         time.sleep(.2)
