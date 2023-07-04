@@ -4,19 +4,14 @@ from DataServer import DataServer
 from DataClient import DataClient
 from QuitServer import QuitServer
 from Logger import Logger
-from Settings import buff, N, nRows
+from Settings import N, nRows, buff
 
 logger = Logger('DataServer')
 
 # --------------------------------------------------------------------
 def CreateBuffer():
-    global buff
-    global N
-    global nRows
-    buff = np.uint32([range(0,N)] * nRows)
     for iRow in range(0,nRows):
         buff[iRow] = buff[iRow] + (N * iRow)+1
-
 
 
 # --------------------------------------------------------------------

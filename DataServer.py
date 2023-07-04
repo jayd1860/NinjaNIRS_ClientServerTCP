@@ -2,7 +2,7 @@ import sys
 import time
 import socket
 import Settings
-
+from Settings import buff
 
 # ---------------------------------------------------------------------------
 def DataServer(logger):
@@ -121,7 +121,6 @@ def DataServer(logger):
 
 # --------------------------------------------------------------------
 def ThroughPutTest(s, logger):
-    global buff
     sz = buff.shape
 
     for iRow in range(0, sz[0]):
@@ -130,4 +129,3 @@ def ThroughPutTest(s, logger):
         logger.Write(msg)
         s.send(frame)
         time.sleep(1)
-
