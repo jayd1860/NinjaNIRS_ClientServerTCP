@@ -1,8 +1,10 @@
 import sys
 import time
 import socket
+import numpy as np
 import Settings
 from Settings import buff
+
 
 # ---------------------------------------------------------------------------
 def DataServer(logger):
@@ -122,10 +124,10 @@ def DataServer(logger):
 # --------------------------------------------------------------------
 def ThroughPutTest(s, logger):
     sz = buff.shape
-
     for iRow in range(0, sz[0]):
         frame = buff[iRow].tobytes()
-        msg = ('DataServer:  Sending  frame[#%d]:  [%d ... %d]\n'% (iRow, frame[0], frame[sz[1]-1]))
+        frame0 = np.frombuffer(frame, np.uint32)
+        msg = ('DataServer:  Sending  frame[#%d]:  [%d ... %d]\n'% (iRow+1, frame0[0], frame0[sz[1]-1]))
         logger.Write(msg)
         s.send(frame)
         time.sleep(1)

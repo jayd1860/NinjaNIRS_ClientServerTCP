@@ -68,8 +68,11 @@ def DataClient(logger):
         if len(d)==0:
             sys.stdout.write('DataClient:   State 4: No more data was received ...\n')
             break
-        frame = np.frombuffer(d, np.uint32)
-        sys.stdout.write('DataClient:   State 4:   Received frame[#%d]:  [%d ... %d]\n' % (count, frame[0], frame[-1]))
+        if len(d)%4 == 0:
+            frame = np.frombuffer(d, np.uint32)
+            sys.stdout.write('DataClient:   State 4:   Received frame[#%d]:  [%d ... %d]\n' % (count, frame[0], frame[-1]))
+        else:
+            sys.stdout.write('DataClient:   State 4:   Received %s\n' % d.decode())
         count = count+1
     s.close()
     sys.stdout.write('\n')
