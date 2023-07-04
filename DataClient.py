@@ -4,6 +4,7 @@ import socket
 import numpy as np
 import Settings
 
+chunkSize = Settings.chunkSize
 
 def DataClient(logger):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -60,7 +61,7 @@ def DataClient(logger):
     count = 1
     while True:
         try:
-            d = s.recv(Settings.chunkSize)
+            d = s.recv(chunkSize)
         except:
             sys.stdout.write('DataClient:   State 4: ERROR: Timed out waiting for data ...\n')
             break
@@ -68,11 +69,12 @@ def DataClient(logger):
         if len(d)==0:
             sys.stdout.write('DataClient:   State 4: No more data was received ...\n')
             break
-        if (len(d) % Settings.wordSize) == 0:
-            words = np.frombuffer(d, np.uint32)
-            sys.stdout.write('DataClient:   State 4:   Received chunk #%d, size %d:  first word=%d ... last word=%d\n' % (count, len(d), words[0], words[-1]))
-        else:
-            sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(d)))
+        if (count % 32) == 0:
+            if (len(d) % Settings.wordSize) == 0:
+                words = np.frombuffer(d, np.uint32)
+                sys.stdout.write('DataClient:   State 4:   Received chunk #%d, size %d:  first word=%d ... last word=%d\n' % (count, len(d), words[0], words[-1]))
+            else:
+                sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(d)))
         count = count+1
     s.close()
     sys.stdout.write('\n')
