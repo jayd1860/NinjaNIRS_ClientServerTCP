@@ -3,7 +3,6 @@ import time
 import socket
 import numpy as np
 import Settings
-from Settings import buff
 
 
 # ---------------------------------------------------------------------------
@@ -121,11 +120,12 @@ def DataServer(logger):
 
 # --------------------------------------------------------------------
 def ThroughPutTest(s, logger):
-    sz = buff.shape
+    sz = Settings.buff.shape
     for iRow in range(0, sz[0]):
-        chunk = buff[iRow].tobytes()
+        chunk = Settings.buff[iRow].tobytes()
         chunk0 = np.frombuffer(chunk, np.uint32)
-        msg = ('DataServer:  Sending  chunk #%d:   first word=%d ... last word=%d\n'% (iRow+1, chunk0[0], chunk0[sz[1]-1]))
-        logger.Write(msg)
+        if (iRow % 32) == 0:
+            msg = ('DataServer:  Sending  chunk #%d:   first word=%d ... last word=%d\n'% (iRow, chunk0[0], chunk0[sz[1]-1]))
+            logger.Write(msg)
         s.send(chunk)
-        time.sleep(.2)
+        time.sleep(.01)
