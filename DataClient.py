@@ -74,7 +74,7 @@ def DataClient(logger):
             break
         dLast = d
         words = np.frombuffer(d, np.uint32)
-        if (count % 24) == 0:
+        if (count % Settings.displayInterval) == 0:
             if (len(d) % Settings.wordSize) == 0:
                 sys.stdout.write('DataClient:   State 4:   Received chunk #%d, size %d:  first word=%d ... last word=%d\n' % (count, len(d), words[0], words[-1]))
             else:

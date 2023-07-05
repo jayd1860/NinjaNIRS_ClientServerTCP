@@ -93,7 +93,7 @@ def DataServer(logger):
 
         # Listen for and accept client connection then stream data to it
         s.listen(1)
-        logger.Write("DataServer:   State 3. Listening for connection  ...\n")
+        logger.Write("DataServer:   State 3. Listening for connection ...\n")
         try:
             s2, clientAddr = s.accept()
         except:
@@ -120,12 +120,13 @@ def DataServer(logger):
 
 # --------------------------------------------------------------------
 def ThroughPutTest(s, logger):
-    sz = Settings.buff.shape
-    for iRow in range(0, sz[0]):
-        chunk = Settings.buff[iRow].tobytes()
+    for iChunk in range(0, Settings.nChunks):
+        chunkID = iChunk % Settings.nChunksMax
+        Settings.buff = Settings.buff + (Settings.N * chunkID)
+        chunk = Settings.buff.tobytes()
         chunk0 = np.frombuffer(chunk, np.uint32)
-        if (iRow % 32) == 0:
-            msg = ('DataServer:  Sending  chunk #%d:   first word=%d ... last word=%d\n'% (iRow, chunk0[0], chunk0[sz[1]-1]))
+        if (iChunk % Settings.displayInterval) == 0:
+            msg = ('DataServer:  Sending  chunk #%d:   first word=%d ... last word=%d\n'% (chunkID, chunk0[0], chunk0[sz[1]-1]))
             logger.Write(msg)
         s.send(chunk)
-        time.sleep(.01)
+        time.sleep(Settings.transmissionDelay)
