@@ -59,35 +59,34 @@ def DataClient(logger):
     sys.stdout.write('DataClient:   State 4. Connection Success!!\n')
     time.sleep(.5)
     count = 0
-    d = bytes()
-    dLast = d
-    words = np.frombuffer(d, np.uint32)
+    chunkWordCurr = 0
     while True:
         try:
-            d = s.recv(chunkSize)
+            chunkBytes = s.recv(chunkSize)
         except:
             sys.stdout.write('DataClient:   State 4: ERROR: Timed out waiting for data ...\n')
             break
 
-        if len(d)==0:
+        if len(chunkBytes)==0:
             sys.stdout.write('DataClient:   State 4: No more data was received ...\n')
             break
-        dLast = d
-        words = np.frombuffer(d, np.uint32)
+
+        chunkWords = np.frombuffer(chunkBytes, np.uint32)
+        if ErrorCheck(chunkWords, chunkWordCurr) < -1:
+            errmsg = ' DATA ERRORS detected'
+        else:
+            errmsg = ' NO ERRORS detected'
+
         if (count % Settings.displayInterval) == 0:
-            if (len(d) % Settings.wordSize) == 0:
-                sys.stdout.write('DataClient:   State 4:   Received chunk #%d, size %d:  first word=%d ... last word=%d\n' % (count, len(d), words[0], words[-1]))
+            if (len(chunkBytes) % Settings.wordSize) == 0:
+                msg2 = 'DataServer:  Sending  chunk #%d:   first word = %d ... last word = %d.   %s\n' % \
+                      (count, chunkWords[0], chunkWords[-1], errmsg)
+                sys.stdout.write(msg2)
             else:
-                sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(d)))
+                sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(chunkBytes)))
+        chunkWordCurr = chunkWords[-1]+1
         count = count+1
 
-    # Print out last chunk
-    if len(d) > 0 and (len(d) % Settings.wordSize) == 0:
-        words = np.frombuffer(d, np.uint32)
-        sys.stdout.write('DataClient:   State 4:   Received chunk #%d, size %d:  first word=%d ... last word=%d\n' % (count, len(d), words[0], words[-1]))
-    elif len(dLast) > 0:
-        words = np.frombuffer(dLast, np.uint32)
-        sys.stdout.write('DataClient:   State 4:   Received chunk #%d, size %d:  first word=%d ... last word=%d\n' % (count, len(dLast), words[0], words[-1]))
     s.close()
     sys.stdout.write('\n')
 
@@ -151,4 +150,14 @@ def GetServerIpAddr():
     sys.stdout.write('\n')
     return serverIpAddr, s1, message
 
+
+# ---------------------------------------------------------------
+def ErrorCheck(chunkWordsNew, chunkWordCurr):
+    chunkWordsExpected = np.uint32(range(chunkWordCurr+1, chunkWordCurr+1+len(chunkWordsNew)))
+    b = all(chunkWordsExpected == chunkWordsNew)
+    if b:
+        err = 0
+    else:
+        err = -1
+    return err
 

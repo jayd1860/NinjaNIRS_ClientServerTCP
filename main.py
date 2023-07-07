@@ -8,6 +8,9 @@ logger = Logger('DataServer')
 
 # --------------------------------------------------------------------
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        sys.stdout.write('ERROR: no argument supplied\n')
+        quit(1)
     logger.Write('WELCOME to NinjaNIRS_ClientServerTCP:  %s\n'% sys.argv[1])
     logger.CurrTime()
     if sys.argv[1] == 'client':

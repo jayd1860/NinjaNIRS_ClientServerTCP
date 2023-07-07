@@ -7,22 +7,23 @@ port0   = 6037
 port1   = 6038
 port    = 6021
 
-chunkSizeInWords = 256
-nChunks = 2e6
+chunkSizeInWords = 32
+nChunks = 12
 nChunksMax = 1e8
 N = chunkSizeInWords
 wordSize = np.dtype(np.uint32).itemsize
 chunkSizeInBytes = N * wordSize
 chunkSize = chunkSizeInBytes
-buff = np.uint32([range(0,N)])
+buff = np.uint32(range(0,N))
 
 # Desired data rate in chunks / second
-desiredDataRateInBytes  = pow(2,19)
-desiredDataRateInChunks = np.uint32(desiredDataRateInBytes / chunkSizeInBytes)
+# desiredDataRateInBytes  = pow(2,19)
+desiredDataRateInBytes  = .8*chunkSizeInBytes
+desiredDataRateInChunks = desiredDataRateInBytes / chunkSizeInBytes
 transmissionDelay = 1/desiredDataRateInChunks
 transmissionTimePerChunk = transmissionDelay
 transmissionTimeTotal = transmissionTimePerChunk * nChunks
-displayInterval = 32
+displayInterval = 1
 endBreakPoint = 1
 
 

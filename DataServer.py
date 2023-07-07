@@ -18,7 +18,7 @@ def DataServer(logger):
     # Data stream socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.settimeout(60)
+    s.settimeout(20)
 
     while True:         # This is main server loop for an entire aquisition session
 
@@ -120,13 +120,15 @@ def DataServer(logger):
 
 # --------------------------------------------------------------------
 def ThroughPutTest(s, logger):
+    buff = Settings.buff
     for iChunk in range(0, Settings.nChunks):
         chunkID = iChunk % Settings.nChunksMax
-        Settings.buff = Settings.buff + (Settings.N * chunkID)
-        chunk = Settings.buff.tobytes()
-        chunk0 = np.frombuffer(chunk, np.uint32)
+        buff = buff + np.uint32(Settings.N * chunkID)
+        chunkBytes = buff.tobytes()
+        chunkWords = buff
         if (iChunk % Settings.displayInterval) == 0:
-            msg = ('DataServer:  Sending  chunk #%d:   first word=%d ... last word=%d\n'% (chunkID, chunk0[0], chunk0[sz[1]-1]))
-            logger.Write(msg)
-        s.send(chunk)
+            msg2 = 'DataServer:  Sending  chunk #%d:   first word = %d ... last word = %d\n'% \
+                   (chunkID, chunkWords[0], chunkWords[-1])
+            logger.Write(msg2)
+        s.send(chunkBytes)
         time.sleep(Settings.transmissionDelay)
