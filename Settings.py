@@ -1,6 +1,5 @@
 import sys
 import numpy as np
-# import math
 import GetTimeStamp
 
 port0   = 6037
@@ -8,24 +7,23 @@ port1   = 6038
 port    = 6021
 
 chunkSizeInWords = 32
-nChunks = 12
+nChunks = 25
 nChunksMax = 1e8
 N = chunkSizeInWords
 wordSize = np.dtype(np.uint32).itemsize
 chunkSizeInBytes = N * wordSize
 chunkSize = chunkSizeInBytes
-buff = np.uint32(range(0,N))
+buff = np.uint32(range(-N,0))
 
 # Desired data rate in chunks / second
 # desiredDataRateInBytes  = pow(2,19)
-desiredDataRateInBytes  = .8*chunkSizeInBytes
+desiredDataRateInBytes  = 1*chunkSizeInBytes
 desiredDataRateInChunks = desiredDataRateInBytes / chunkSizeInBytes
 transmissionDelay = 1/desiredDataRateInChunks
 transmissionTimePerChunk = transmissionDelay
 transmissionTimeTotal = transmissionTimePerChunk * nChunks
 displayInterval = 1
 endBreakPoint = 1
-
 
 
 # --------------------------------------------------------------------

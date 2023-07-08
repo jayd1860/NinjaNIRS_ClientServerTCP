@@ -3,6 +3,12 @@ import time
 import socket
 import numpy as np
 import Settings
+import random
+import rand
+import Utils
+import GetTimeStamp
+
+nSimErrors = 0
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +113,13 @@ def DataServer(logger):
         ############################################################################################
         logger.Write("DataServer:  State 4. Connected to client (%s, %d)\n"%  (clientAddr[0], clientAddr[1]))
 
-        ThroughPutTest(s2, logger)
+        startTime = GetTimeStamp.datestr2datenum()
+        errsGenerated = ThroughPutTest(s2, logger)
+        endTime = GetTimeStamp.datestr2datenum()
+
+        Utils.ErrorReport(errsGenerated)
+
+        sys.stdout.write('Elapsed time:  %s (%s seconds) \n' % (GetTimeStamp.ElapsedTimeStr(endTime - startTime), endTime - startTime))
 
         # Wait before closing connection to let last packet be received
         time.sleep(2)
@@ -120,15 +132,46 @@ def DataServer(logger):
 
 # --------------------------------------------------------------------
 def ThroughPutTest(s, logger):
+    global nSimErrors
     buff = Settings.buff
+    nSimErrors = 0
+    errsGenerated = []
     for iChunk in range(0, Settings.nChunks):
-        chunkID = iChunk % Settings.nChunksMax
-        buff = buff + np.uint32(Settings.N * chunkID)
+        chunkID = iChunk % int(Settings.nChunksMax)
+        buff = buff + np.uint32(Settings.N)
         chunkBytes = buff.tobytes()
         chunkWords = buff
-        if (iChunk % Settings.displayInterval) == 0:
-            msg2 = 'DataServer:  Sending  chunk #%d:   first word = %d ... last word = %d\n'% \
-                   (chunkID, chunkWords[0], chunkWords[-1])
-            logger.Write(msg2)
+        err, chunkBytes = SimErrors(chunkBytes)
+        if err < 0:
+            errmsg = '      DataServer:   ALERT! Generated simulated error in chunk #%d' % chunkID
+            logger.Write(errmsg + '\n')
+            errsGenerated.append(errmsg)
+
+        # if (iChunk % Settings.displayInterval) == 0:
+        msg2 = 'DataServer:  Sending  chunk #%d   -  first word = %d ... last word = %d\n'% \
+               (chunkID, chunkWords[0], chunkWords[-1])
+        logger.Write(msg2)
         s.send(chunkBytes)
         time.sleep(Settings.transmissionDelay)
+
+    return errsGenerated
+
+
+# ----------------------------------------------------------
+def SimErrors(chunkBytes):
+    r = rand.genRandomUint8Seq(1)
+    err = 0
+    idx = np.uint32(len(chunkBytes) / 2)
+    if 200 < r[0] < 235:
+        rIdx = random.randint(0,Settings.chunkSizeInBytes)
+        rVal = random.randint(0,len(chunkBytes)-1)
+        p = chunkBytes[rIdx]
+        if p != rVal:
+            chunkBytes2 = np.frombuffer(chunkBytes, np.uint8).copy()
+            chunkBytes2[rIdx] = rVal
+            err = -1
+            chunkBytes = chunkBytes2.tobytes()
+    return err, chunkBytes
+
+
+

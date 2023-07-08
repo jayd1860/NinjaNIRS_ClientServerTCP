@@ -4,7 +4,7 @@ from DataClient import DataClient
 from QuitServer import QuitServer
 from Logger import Logger
 
-logger = Logger('DataServer')
+logger = Logger('NinjaNIRS_ClientServer')
 
 # --------------------------------------------------------------------
 if __name__ == '__main__':

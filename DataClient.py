@@ -3,6 +3,11 @@ import time
 import socket
 import numpy as np
 import Settings
+import random
+import rand
+import Logger
+import GetTimeStamp
+import Utils
 
 chunkSize = Settings.chunkSize
 
@@ -60,7 +65,11 @@ def DataClient(logger):
     time.sleep(.5)
     count = 0
     chunkWordCurr = 0
+    chunkWords = np.uint32([])
+    errsDetected = []
+    startTime = GetTimeStamp.datestr2datenum()
     while True:
+        chunkWordCurr = chunkWordCurr + len(chunkWords)
         try:
             chunkBytes = s.recv(chunkSize)
         except:
@@ -72,23 +81,25 @@ def DataClient(logger):
             break
 
         chunkWords = np.frombuffer(chunkBytes, np.uint32)
-        if ErrorCheck(chunkWords, chunkWordCurr) < -1:
-            errmsg = ' DATA ERRORS detected'
-        else:
-            errmsg = ' NO ERRORS detected'
+        if ErrorCheck(chunkWords, chunkWordCurr) < 0:
+            errmsg = '      DataClient:   Detected ERRORS in chunk #%d'% count
+            sys.stdout.write(errmsg + '\n')
+            errsDetected.append(errmsg)
 
-        if (count % Settings.displayInterval) == 0:
-            if (len(chunkBytes) % Settings.wordSize) == 0:
-                msg2 = 'DataServer:  Sending  chunk #%d:   first word = %d ... last word = %d.   %s\n' % \
-                      (count, chunkWords[0], chunkWords[-1], errmsg)
-                sys.stdout.write(msg2)
-            else:
-                sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(chunkBytes)))
-        chunkWordCurr = chunkWords[-1]+1
+        # if (count % Settings.displayInterval) == 0:
+        if (len(chunkBytes) % Settings.wordSize) == 0:
+            msg2 = 'DataClient:  Received  chunk #%d  -  first word = %d ... last word = %d.\n' % \
+                  (count, chunkWords[0], chunkWords[-1])
+            sys.stdout.write(msg2)
+        else:
+            sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(chunkBytes)))
         count = count+1
 
-    s.close()
+    Utils.ErrorReport(errsDetected)
+    endTime = GetTimeStamp.datestr2datenum()
+    sys.stdout.write('Elapsed time:  %s (%s seconds)\n'% (GetTimeStamp.ElapsedTimeStr(endTime - startTime), endTime-startTime))
     sys.stdout.write('\n')
+    s.close()
 
 
 
@@ -105,6 +116,7 @@ def GetServerIpAddr():
     s1.settimeout(.1)
     s1.bind(('', Settings.port1))
 
+    message = ''
 
     ############################################################################################
     # State 1. Let the Handshaking begin. Send initial request to server
@@ -125,7 +137,6 @@ def GetServerIpAddr():
         ############################################################################################
         # State 2. Immediately start waiting to receive server IP address
         ############################################################################################
-        message = ''
         maxRecvAttempts = 5
         for kk in range(1, maxRecvAttempts, 1):
             sys.stdout.write('DataClient:   State 2. Attempt #%d to receive response from server on port %d ...\n'% (kk, Settings.port1))
@@ -151,9 +162,10 @@ def GetServerIpAddr():
     return serverIpAddr, s1, message
 
 
+
 # ---------------------------------------------------------------
 def ErrorCheck(chunkWordsNew, chunkWordCurr):
-    chunkWordsExpected = np.uint32(range(chunkWordCurr+1, chunkWordCurr+1+len(chunkWordsNew)))
+    chunkWordsExpected = np.uint32(range(chunkWordCurr, chunkWordCurr+len(chunkWordsNew)))
     b = all(chunkWordsExpected == chunkWordsNew)
     if b:
         err = 0
@@ -161,3 +173,73 @@ def ErrorCheck(chunkWordsNew, chunkWordCurr):
         err = -1
     return err
 
+
+####################################################################################
+
+# --------------------------------------------------------------------
+def ThroughPutTest_Simulation(logger):
+    buff = Settings.buff
+    chunkWordCurr = 0
+    errsGenerated = []
+    errsDetected = []
+    chunkWords = np.uint32([])
+    for iChunk in range(0, Settings.nChunks):
+        chunkWordCurr = chunkWordCurr + len(chunkWords)
+        chunkID = iChunk % int(Settings.nChunksMax)
+        buff = buff + np.uint32(Settings.N)
+        chunkBytes = buff.tobytes()
+        chunkWords = buff
+        err, chunkBytes = SimErrors(chunkBytes)
+        if err < 0:
+            errmsg = '      DataServer:   ALERT! Generated simulated error in chunk #%d'% chunkID
+            sys.stdout.write(errmsg+'\n')
+            errsGenerated.append(errmsg)
+
+        if (iChunk % Settings.displayInterval) == 0:
+            msg2 = 'DataServer:  Sending  chunk #%d:   first word = %d ... last word = %d\n'% \
+                   (chunkID, chunkWords[0], chunkWords[-1])
+            sys.stdout.write(msg2)
+
+        # Instead of s.send(chunkBytes), we have error check
+        chunkWords = np.frombuffer(chunkBytes, np.uint32)
+        if ErrorCheck(chunkWords, chunkWordCurr) < 0:
+            errmsg = '      DataClient:   Detected ERRORS in chunk #%d'% chunkID
+            sys.stdout.write(errmsg + '\n')
+            errsDetected.append(errmsg)
+        time.sleep(Settings.transmissionDelay)
+
+    return errsGenerated, errsDetected
+
+
+
+# ----------------------------------------------------------
+def SimErrors(chunkBytes):
+    r = rand.genRandomUint8Seq(1)
+    err = 0
+    if 200 < r[0] < 235:
+        rIdx = random.randint(0,Settings.chunkSizeInBytes)
+        rVal = random.randint(0,len(chunkBytes)-1)
+        p = chunkBytes[rIdx]
+        if p != rVal:
+            chunkBytes2 = np.frombuffer(chunkBytes, np.uint8).copy()
+            chunkBytes2[rIdx] = rVal
+            err = -1
+            chunkBytes = chunkBytes2.tobytes()
+    return err, chunkBytes
+
+
+
+# --------------------------------------------------------------------
+if __name__ == '__main__':
+    logger = Logger.Logger('DataClient ThroughPutTest_Simulation:')
+
+    startTime = GetTimeStamp.datestr2datenum()
+    errsGenerated, errsDetected = ThroughPutTest_Simulation(logger)
+    endTime = GetTimeStamp.datestr2datenum()
+
+    sys.stdout.write('\n')
+
+    Utils.ErrorReport(errsGenerated)
+    Utils.ErrorReport(errsDetected)
+
+    sys.stdout.write('Elapsed time:  %s (%s seconds) \n'% (GetTimeStamp.ElapsedTimeStr(endTime - startTime), endTime-startTime))
