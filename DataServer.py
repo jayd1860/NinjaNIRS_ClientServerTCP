@@ -108,6 +108,7 @@ def DataServer(logger):
         time.sleep(2)
         logger.Write('\n')
 
+
         ############################################################################################
         # State 5.  Connection has been established. Move into new state - send data stream
         ############################################################################################
@@ -161,8 +162,10 @@ def ThroughPutTest(s, logger):
 
 # ----------------------------------------------------------
 def SimErrors(chunkBytes):
-    r = rand.genRandomUint8Seq(1)
     err = 0
+    if not Settings.SIM_ERRORS:
+        return err, chunkBytes
+    r = rand.genRandomUint8Seq(1)
     idx = np.uint32(len(chunkBytes) / 2)
     if 116 < r[0] < 118:
         rIdx = random.randint(0,Settings.chunkSizeInBytes)

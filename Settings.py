@@ -6,7 +6,13 @@ port0   = 6037
 port1   = 6038
 port    = 6021
 
-chunkSizeInWords = 64
+DEBUG = False
+SIM_ERRORS = False
+
+if DEBUG:
+    chunkSizeInWords = 64
+else:
+    chunkSizeInWords = 256
 N = chunkSizeInWords
 wordSize = np.dtype(np.uint32).itemsize
 chunkSizeInBytes = N * wordSize
@@ -14,21 +20,30 @@ chunkSize = chunkSizeInBytes
 buff = np.uint32(range(0,N)) - N
 
 # Desired data rate in chunks / second
-# desiredDataRateInBytes  = pow(2,19)
-desiredDataRateInBytes  = 10*chunkSizeInBytes
-desiredDataRateInChunks = desiredDataRateInBytes / chunkSizeInBytes
+if DEBUG:
+    desiredDataRateInBytes = 10 * chunkSizeInBytes
+else:
+    desiredDataRateInBytes  = pow(2,19)
+
+desiredDataRateInChunks = int(desiredDataRateInBytes / chunkSizeInBytes)
 transmissionDelay = 1/desiredDataRateInChunks
 transmissionTimePerChunk = transmissionDelay
 
 # Transmit for one hour
-# nChunks = 3600 * desiredDataRateInChunks
-nChunks = 20 * np.uint32(desiredDataRateInChunks)
+if DEBUG:
+    nChunks = 20 * np.uint32(desiredDataRateInChunks)
+else:
+    nChunks = 120 * desiredDataRateInChunks
+
 nChunksMax = 1e8
 
 transmissionTimeTotal = transmissionTimePerChunk * nChunks
-#displayInterval = 2 * desiredDataRateInChunks
-displayInterval = 10
-endBreakPoint = 1
+
+# How long to wait in units of chunks before displaying that you sent/received a chunk
+if DEBUG:
+    displayInterval = 10
+else:
+    displayInterval = 2 * desiredDataRateInChunks
 
 
 
@@ -40,7 +55,7 @@ if __name__ == '__main__':
     sys.stdout.write('      nChunks                     = %d\n'% nChunks)
     sys.stdout.write('      nChunksMax                  = %d\n'% nChunksMax)
     sys.stdout.write('      desiredDataRateInBytes      = %0.1f\n'% desiredDataRateInBytes)
-    sys.stdout.write('      desiredDataRateInChunks     = %0.1f\n'% desiredDataRateInChunks)
+    sys.stdout.write('      desiredDataRateInChunks     = %d\n'% desiredDataRateInChunks)
     sys.stdout.write('      transmissionTimePerChunk    = %0.4f\n'% transmissionDelay)
     sys.stdout.write('      transmissionTimeTotal       = %0.1f seconds  (%s)\n'%
                      (transmissionTimeTotal, GetTimeStamp.ElapsedTimeStr(transmissionTimeTotal)))
