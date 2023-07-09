@@ -86,13 +86,15 @@ def DataClient(logger):
             sys.stdout.write(errmsg + '\n')
             errsDetected.append(errmsg)
 
-        # if (count % Settings.displayInterval) == 0:
-        if (len(chunkBytes) % Settings.wordSize) == 0:
-            msg2 = 'DataClient:  Received  chunk #%d  -  first word = %d ... last word = %d.\n' % \
-                  (count, chunkWords[0], chunkWords[-1])
-            sys.stdout.write(msg2)
-        else:
-            sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(chunkBytes)))
+        # Notify user that we're still receiving
+        if (count % Settings.displayInterval) == 0:
+            if (len(chunkBytes) % Settings.wordSize) == 0:
+                msg2 = 'DataClient:  Received  chunk #%d  -  first word = %d ... last word = %d.\n' % \
+                      (count, chunkWords[0], chunkWords[-1])
+                sys.stdout.write(msg2)
+            else:
+                sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(chunkBytes)))
+
         count = count+1
 
     Utils.ErrorReport(errsDetected)
@@ -216,9 +218,9 @@ def ThroughPutTest_Simulation(logger):
 def SimErrors(chunkBytes):
     r = rand.genRandomUint8Seq(1)
     err = 0
-    if 200 < r[0] < 235:
-        rIdx = random.randint(0,Settings.chunkSizeInBytes)
-        rVal = random.randint(0,len(chunkBytes)-1)
+    if 234 < r[0] < 237:
+        rIdx = random.randint(0, Settings.chunkSizeInBytes-1)
+        rVal = random.randint(0, len(chunkBytes)-1)
         p = chunkBytes[rIdx]
         if p != rVal:
             chunkBytes2 = np.frombuffer(chunkBytes, np.uint8).copy()

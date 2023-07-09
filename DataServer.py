@@ -147,10 +147,12 @@ def ThroughPutTest(s, logger):
             logger.Write(errmsg + '\n')
             errsGenerated.append(errmsg)
 
-        # if (iChunk % Settings.displayInterval) == 0:
-        msg2 = 'DataServer:  Sending  chunk #%d   -  first word = %d ... last word = %d\n'% \
-               (chunkID, chunkWords[0], chunkWords[-1])
-        logger.Write(msg2)
+        # This is where we notify the user of what is happening and that we're still alive
+        if (iChunk % Settings.displayInterval) == 0:
+            msg2 = 'DataServer:  Sending  chunk #%d   -  first word = %d ... last word = %d\n'% \
+                   (chunkID, chunkWords[0], chunkWords[-1])
+            logger.Write(msg2)
+
         s.send(chunkBytes)
         time.sleep(Settings.transmissionDelay)
 
@@ -162,7 +164,7 @@ def SimErrors(chunkBytes):
     r = rand.genRandomUint8Seq(1)
     err = 0
     idx = np.uint32(len(chunkBytes) / 2)
-    if 200 < r[0] < 235:
+    if 116 < r[0] < 118:
         rIdx = random.randint(0,Settings.chunkSizeInBytes)
         rVal = random.randint(0,len(chunkBytes)-1)
         p = chunkBytes[rIdx]
