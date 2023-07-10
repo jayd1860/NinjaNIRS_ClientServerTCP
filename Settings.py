@@ -27,12 +27,12 @@ else:
     desiredDataRateInBytes = pow(2,19)
 
 desiredDataRateInChunks = int(desiredDataRateInBytes / chunkSizeInBytes)
-processingTimePerChunk = 0.2
+processingTimePerChunk = 1
 processingTimePerChunkInChunks = processingTimePerChunk * desiredDataRateInChunks
 transmissionDelay = 1 / (desiredDataRateInChunks + processingTimePerChunkInChunks)
 transmissionTimePerChunk = transmissionDelay
 
-# Transmit for 2 minutes
+# Transmit for about 2 minutes
 if DEBUG:
     nChunks = 20 * np.uint32(desiredDataRateInChunks)
 else:
@@ -49,20 +49,30 @@ else:
     displayInterval = 2 * desiredDataRateInChunks
 
 
+# --------------------------------------------------------
+def Print():
+    sys.stdout.write('\n')
+    sys.stdout.write('=============================================================\n')
+    sys.stdout.write('Configuration Settings:\n')
+    sys.stdout.write('-----------------------\n')
+    sys.stdout.write('    chunkSizeInWords            = %d words\n'% N)
+    sys.stdout.write('    N                           = %d words\n'% N)
+    sys.stdout.write('    chunkSizeInBytes            = %d bytes\n'% chunkSizeInBytes)
+    sys.stdout.write('    nChunks                     = %d\n'% nChunks)
+    sys.stdout.write('    nChunksMax                  = %d\n'% nChunksMax)
+    sys.stdout.write('    desiredDataRateInBytes      = %0.1f bytes\n'% desiredDataRateInBytes)
+    sys.stdout.write('    desiredDataRateInChunks     = %d chunks\n'% desiredDataRateInChunks)
+    sys.stdout.write('    processingTimePerChunk      = %0.4f sec\n'% processingTimePerChunk)
+    sys.stdout.write('    transmissionDelay           = %0.4f sec\n'% transmissionDelay)
+    sys.stdout.write('    transmissionTimePerChunk    = %0.4f sec\n'% transmissionTimePerChunk)
+    sys.stdout.write('    transmissionTimeTotal       = %0.1f sec  (%s)\n'%
+                     (transmissionTimeTotal, GetTimeStamp.ElapsedTimeStr(transmissionTimeTotal)))
+    sys.stdout.write('    displayInterval             = %d chunks\n'% displayInterval)
+    sys.stdout.write('=============================================================\n')
+    sys.stdout.write('\n')
+
+
 
 # --------------------------------------------------------------------
 if __name__ == '__main__':
-    sys.stdout.write('\nSETTINGS:\n')
-    sys.stdout.write('      N                           = %d\n'% N)
-    sys.stdout.write('      chunkSizeInBytes            = %d\n'% chunkSizeInBytes)
-    sys.stdout.write('      nChunks                     = %d\n'% nChunks)
-    sys.stdout.write('      nChunksMax                  = %d\n'% nChunksMax)
-    sys.stdout.write('      desiredDataRateInBytes      = %0.1f\n'% desiredDataRateInBytes)
-    sys.stdout.write('      desiredDataRateInChunks     = %d\n'% desiredDataRateInChunks)
-    sys.stdout.write('      processingTimePerChunk      = %0.4f\n'% processingTimePerChunk)
-    sys.stdout.write('      transmissionDelay           = %0.4f\n'% transmissionDelay)
-    sys.stdout.write('      transmissionTimePerChunk    = %0.4f\n'% transmissionTimePerChunk)
-    sys.stdout.write('      transmissionTimeTotal       = %0.1f seconds  (%s)\n'%
-                     (transmissionTimeTotal, GetTimeStamp.ElapsedTimeStr(transmissionTimeTotal)))
-    sys.stdout.write('      displayInterval             = %d\n\n'% displayInterval)
-
+    Print()

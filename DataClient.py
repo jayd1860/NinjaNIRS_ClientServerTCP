@@ -13,7 +13,7 @@ chunkSize = Settings.chunkSize
 
 def DataClient(logger):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(10)
+    s.settimeout(15)
 
     #####################################################################
     #  State 2. Determine if we have server's IP address

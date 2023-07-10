@@ -3,6 +3,7 @@ from DataServer import DataServer
 from DataClient import DataClient
 from QuitServer import QuitServer
 from Logger import Logger
+import Settings
 
 logger = Logger('NinjaNIRS_ClientServer')
 
@@ -13,6 +14,7 @@ if __name__ == '__main__':
         quit(1)
     logger.Write('WELCOME to NinjaNIRS_ClientServerTCP:  %s\n'% sys.argv[1])
     logger.CurrTime()
+    Settings.Print()
     if sys.argv[1] == 'client':
         DataClient(logger)
     elif sys.argv[1] == 'server':
