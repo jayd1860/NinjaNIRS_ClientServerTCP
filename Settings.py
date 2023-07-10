@@ -9,6 +9,7 @@ port    = 6021
 DEBUG = False
 SIM_ERRORS = False
 
+# All time units are in seconds
 if DEBUG:
     chunkSizeInWords = 64
 else:
@@ -23,13 +24,15 @@ buff = np.uint32(range(0,N)) - N
 if DEBUG:
     desiredDataRateInBytes = 10 * chunkSizeInBytes
 else:
-    desiredDataRateInBytes  = pow(2,19)
+    desiredDataRateInBytes = pow(2,19)
 
 desiredDataRateInChunks = int(desiredDataRateInBytes / chunkSizeInBytes)
-transmissionDelay = 1/desiredDataRateInChunks
+processingTimePerChunk = 0.2
+processingTimePerChunkInChunks = processingTimePerChunk * desiredDataRateInChunks
+transmissionDelay = 1 / (desiredDataRateInChunks + processingTimePerChunkInChunks)
 transmissionTimePerChunk = transmissionDelay
 
-# Transmit for one hour
+# Transmit for 2 minutes
 if DEBUG:
     nChunks = 20 * np.uint32(desiredDataRateInChunks)
 else:
@@ -56,7 +59,9 @@ if __name__ == '__main__':
     sys.stdout.write('      nChunksMax                  = %d\n'% nChunksMax)
     sys.stdout.write('      desiredDataRateInBytes      = %0.1f\n'% desiredDataRateInBytes)
     sys.stdout.write('      desiredDataRateInChunks     = %d\n'% desiredDataRateInChunks)
-    sys.stdout.write('      transmissionTimePerChunk    = %0.4f\n'% transmissionDelay)
+    sys.stdout.write('      processingTimePerChunk      = %0.4f\n'% processingTimePerChunk)
+    sys.stdout.write('      transmissionDelay           = %0.4f\n'% transmissionDelay)
+    sys.stdout.write('      transmissionTimePerChunk    = %0.4f\n'% transmissionTimePerChunk)
     sys.stdout.write('      transmissionTimeTotal       = %0.1f seconds  (%s)\n'%
                      (transmissionTimeTotal, GetTimeStamp.ElapsedTimeStr(transmissionTimeTotal)))
     sys.stdout.write('      displayInterval             = %d\n\n'% displayInterval)
