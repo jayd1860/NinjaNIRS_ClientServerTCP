@@ -1,4 +1,6 @@
 import sys
+import GetTimeStamp
+import numpy as np
 
 
 # ----------------------------------------------------------
@@ -24,4 +26,9 @@ def ErrorReport(errs):
     sys.stdout.write('\n')
 
 
+
+# ------------------------------------------------------------------
+def GetDataRate(startTime, nWords):
+    currTime = GetTimeStamp.datestr2datenum()
+    return ((nWords*4) / (currTime - startTime)) / 1000.0
 

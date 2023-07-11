@@ -137,6 +137,7 @@ def ThroughPutTest(s, logger):
     buff = Settings.buff
     nSimErrors = 0
     errsGenerated = []
+    msgCount = 1
     for iChunk in range(0, Settings.nChunks):
         chunkID = iChunk % int(Settings.nChunksMax)
         buff = buff + np.uint32(Settings.N)
@@ -150,8 +151,9 @@ def ThroughPutTest(s, logger):
 
         # This is where we notify the user of what is happening and that we're still alive
         if (iChunk % Settings.displayInterval) == 0:
-            msg2 = 'DataServer:  Sending  chunk #%d   -  first word = %d ... last word = %d\n'% \
-                   (chunkID, chunkWords[0], chunkWords[-1])
+            msg2 = 'DataServer:  %d. Sending  chunk #%d   -  first word = %d ... last word = %d\n'% \
+                   (msgCount, chunkID, chunkWords[0], chunkWords[-1])
+            msgCount = msgCount+1
             logger.Write(msg2)
 
         s.send(chunkBytes)

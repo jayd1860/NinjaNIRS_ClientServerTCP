@@ -64,6 +64,7 @@ def DataClient(logger):
     sys.stdout.write('DataClient:   State 4. Connection Success!!\n')
     time.sleep(.5)
     count = 0
+    msgCount = 1
     chunkWordCurr = 0
     chunkWords = np.uint32([])
     errsDetected = []
@@ -89,17 +90,26 @@ def DataClient(logger):
         # Notify user that we're still receiving
         if (count % Settings.displayInterval) == 0:
             if (len(chunkBytes) % Settings.wordSize) == 0:
-                msg2 = 'DataClient:  Received  chunk #%d  -  first word = %d ... last word = %d.\n' % \
-                      (count, chunkWords[0], chunkWords[-1])
-                sys.stdout.write(msg2)
+                dataRate = 0
+                if (count > 0) and (count % (4*Settings.displayInterval)) == 0:
+                    dataRate = Utils.GetDataRate(startTime, chunkWords[-1])
+                if dataRate > 0:
+                    msg = 'DataClient:  %d. Received  chunk #%d  -  first word = %d ... last word = %d.   Data rate:  %0.2f KB/sec\n' % \
+                          (msgCount, count, chunkWords[0], chunkWords[-1], dataRate)
+                else:
+                    msg = 'DataClient:  %d. Received  chunk #%d  -  first word = %d ... last word = %d.\n' % \
+                          (msgCount, count, chunkWords[0], chunkWords[-1])
+                msgCount = msgCount+1
+                sys.stdout.write(msg)
             else:
                 sys.stdout.write('DataClient:   State 4:   WARNING: Received %d bytes. Fgiure out what to do here\n' % (len(chunkBytes)))
-
         count = count+1
 
     Utils.ErrorReport(errsDetected)
     endTime = GetTimeStamp.datestr2datenum()
-    sys.stdout.write('Elapsed time:  %s (%s seconds)\n'% (GetTimeStamp.ElapsedTimeStr(endTime - startTime), endTime-startTime))
+    sys.stdout.write('Elapsed time          :  %s (%s seconds)\n'% (GetTimeStamp.ElapsedTimeStr(endTime - startTime), endTime-startTime))
+    sys.stdout.write('Total bytes received  :  %0.2f KB\n'% (1/1000 * chunkWords[-1] * 4))
+    sys.stdout.write('Final data rate       :  %0.2f KB / sec\n'% (1.0/1000.0 * (float(chunkWords[-1]*4) / (endTime-startTime))))
     sys.stdout.write('\n')
     s.close()
 

@@ -27,14 +27,14 @@ else:
     desiredDataRateInBytes = pow(2,19)
 
 desiredDataRateInChunks = int(desiredDataRateInBytes / chunkSizeInBytes)
-processingTimePerChunk = 1
+processingTimePerChunk = .5
 processingTimePerChunkInChunks = processingTimePerChunk * desiredDataRateInChunks
 transmissionDelay = 1 / (desiredDataRateInChunks + processingTimePerChunkInChunks)
 transmissionTimePerChunk = transmissionDelay
 
 # Transmit for about 2 minutes
 if DEBUG:
-    nChunks = 20 * np.uint32(desiredDataRateInChunks)
+    nChunks = 64 * np.uint32(desiredDataRateInChunks)
 else:
     nChunks = 120 * desiredDataRateInChunks
 
@@ -46,7 +46,7 @@ transmissionTimeTotal = transmissionTimePerChunk * nChunks
 if DEBUG:
     displayInterval = 10
 else:
-    displayInterval = 2 * desiredDataRateInChunks
+    displayInterval = 3 * desiredDataRateInChunks
 
 
 # --------------------------------------------------------
