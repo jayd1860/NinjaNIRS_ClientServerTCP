@@ -18,7 +18,8 @@ if __name__ == '__main__':
     if sys.argv[1] == 'client':
         DataClient(logger)
     elif sys.argv[1] == 'server':
-        DataServer(logger)
+        while True:
+            DataServer(logger)
     elif sys.argv[1] == 'quit':
         QuitServer(logger)
     logger.Close()

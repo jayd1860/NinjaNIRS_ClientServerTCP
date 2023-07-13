@@ -65,17 +65,22 @@ def DataClient(logger):
     time.sleep(.5)
     count = 0
     msgCount = 1
+    chunkBytes = bytes([])
     chunkWordCurr = 0
     chunkWords = np.uint32([])
     errsDetected = []
     startTime = GetTimeStamp.datestr2datenum()
+    nErrors = 0
+    maxNumErrors = 10
     while True:
         chunkWordCurr = chunkWordCurr + len(chunkWords)
         try:
             chunkBytes = s.recv(chunkSize)
-        except:
-            sys.stdout.write('DataClient:   State 4: ERROR: Timed out waiting for data ...\n')
-            break
+        except Exception as err:
+            sys.stdout.write('DataClient:   State 4: ERROR - %s...\n'% err)
+            if nErrors > maxNumErrors:
+                break
+            nErrors = nErrors+1
 
         if len(chunkBytes)==0:
             sys.stdout.write('DataClient:   State 4: No more data was received ...\n')
@@ -133,7 +138,7 @@ def GetServerIpAddr():
     ############################################################################################
     # State 1. Let the Handshaking begin. Send initial request to server
     ############################################################################################
-    maxInitAttempts = 50
+    maxInitAttempts = 10
     prefix = "S"
     for ii in range(1, maxInitAttempts, 1):
         msg = 'DataClient:   State 1. %sending INITIAL broadcast message (attempt #%d) to server to (%s, %d)\n'% \

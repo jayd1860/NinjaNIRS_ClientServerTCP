@@ -9,10 +9,18 @@ import Utils
 import GetTimeStamp
 
 nSimErrors = 0
-
+s0 = socket.socket()
+s1 = socket.socket()
+s2 = socket.socket()
+s = socket.socket()
 
 # ---------------------------------------------------------------------------
 def DataServer(logger):
+    global s0
+    global s1
+    global s
+    global s2
+
     streamSocketBound = False
 
     # Receive own IP address on this socket
@@ -76,7 +84,8 @@ def DataServer(logger):
                 break
             if initClientMsg.decode() == 'QUIT':
                 logger.Write('Received QUIT command ... Exiting\n')
-                return
+                Cleanup()
+                quit()
             s0.close()
         sys.stdout.write('\n')
 
@@ -102,8 +111,9 @@ def DataServer(logger):
         logger.Write("DataServer:   State 3. Listening for connection ...\n")
         try:
             s2, clientAddr = s.accept()
-        except:
-            logger.Write("DataServer:  State 3. Accept timed out ... Exiting\n\n")
+        except Exception as err:
+            logger.Write("DataServer:  State 3. Accept ERROR %s ... Exiting\n\n"% err)
+            Cleanup()
             return
         time.sleep(2)
         logger.Write('\n')
@@ -115,7 +125,7 @@ def DataServer(logger):
         logger.Write("DataServer:  State 4. Connected to client (%s, %d)\n"%  (clientAddr[0], clientAddr[1]))
 
         startTime = GetTimeStamp.datestr2datenum()
-        errsGenerated = ThroughPutTest(s2, logger)
+        errsGenerated = ThroughPutTest(logger)
         endTime = GetTimeStamp.datestr2datenum()
 
         Utils.ErrorReport(errsGenerated)
@@ -132,8 +142,10 @@ def DataServer(logger):
 
 
 # --------------------------------------------------------------------
-def ThroughPutTest(s, logger):
+def ThroughPutTest(logger):
     global nSimErrors
+    global s2
+
     buff = Settings.buff
     nSimErrors = 0
     errsGenerated = []
@@ -156,7 +168,7 @@ def ThroughPutTest(s, logger):
             msgCount = msgCount+1
             logger.Write(msg2)
 
-        s.send(chunkBytes)
+        s2.send(chunkBytes)
         time.sleep(Settings.transmissionDelay)
 
     return errsGenerated
@@ -168,7 +180,6 @@ def SimErrors(chunkBytes):
     if not Settings.SIM_ERRORS:
         return err, chunkBytes
     r = rand.genRandomUint8Seq(1)
-    idx = np.uint32(len(chunkBytes) / 2)
     if 116 < r[0] < 118:
         rIdx = random.randint(0,Settings.chunkSizeInBytes)
         rVal = random.randint(0,len(chunkBytes)-1)
@@ -181,4 +192,16 @@ def SimErrors(chunkBytes):
     return err, chunkBytes
 
 
+
+# -----------------------------------------------------------
+def Cleanup():
+    global s0
+    global s1
+    global s
+    global s2
+
+    s0.close()
+    s1.close()
+    s.close()
+    s2.close()
 

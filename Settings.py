@@ -27,7 +27,7 @@ else:
     desiredDataRateInBytes = pow(2,19)
 
 desiredDataRateInChunks = int(desiredDataRateInBytes / chunkSizeInBytes)
-processingTimePerChunk = .5
+processingTimePerChunk = .7
 processingTimePerChunkInChunks = processingTimePerChunk * desiredDataRateInChunks
 transmissionDelay = 1 / (desiredDataRateInChunks + processingTimePerChunkInChunks)
 transmissionTimePerChunk = transmissionDelay
@@ -36,7 +36,7 @@ transmissionTimePerChunk = transmissionDelay
 if DEBUG:
     nChunks = 64 * np.uint32(desiredDataRateInChunks)
 else:
-    nChunks = 120 * desiredDataRateInChunks
+    nChunks = 7200 * desiredDataRateInChunks
 
 nChunksMax = 1e8
 
