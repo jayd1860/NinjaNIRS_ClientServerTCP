@@ -52,7 +52,7 @@ def DataClient(logger):
         time.sleep(1)
     if err != 0:
         sys.stdout.write('DataClient:   State 3. Exceeded max number of attempts to connect. Exiting ...\n')
-        s1.sendto('Failed to connect, close connection'.encode('utf-8'), (serverIpAddr[0], Settings.port1))
+        s1.sendto('DataClient:   Failed to connect, close connection'.encode('utf-8'), (serverIpAddr[0], Settings.port1))
         s.close()
         return
     sys.stdout.write('\n')

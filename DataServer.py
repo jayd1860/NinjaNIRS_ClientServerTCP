@@ -75,17 +75,18 @@ def DataServer(logger):
                     if len(serverIpAddr) > 0:
                         break
                     logger.Write('DataServer:   State 2. Attempt #%d to receive own IP address timed out. Trying again ...\n'%  count)
-                except socket.error:
-                    logger.Write('DataServer:   State 2. Attempt #%d to receive own IP address generated ERROR. Trying again ...\n'%  count)
+                except Exception as err:
+                    logger.Write('DataServer:   State 2. Attempt #%d to receive own IP address generated ERROR %s. Trying again ...\n'%  (count, err))
             sys.stdout.write('\n')
             if len(serverIpAddr) > 0:
-                if serverIpAddr == 'Failed to connect, close connection':
-                    continue
+                if serverIpAddr == 'DataClient:   Failed to connect, close connection':
+                    Cleanup(logger)
+                    return -1
                 break
             if initClientMsg.decode() == 'QUIT':
-                logger.Write('Received QUIT command ... Exiting\n')
-                Cleanup()
-                quit()
+                logger.Write('DataServer:   Received QUIT command ... Exiting\n')
+                Cleanup(logger)
+                return 0
             s0.close()
         sys.stdout.write('\n')
 
@@ -112,9 +113,9 @@ def DataServer(logger):
         try:
             s2, clientAddr = s.accept()
         except Exception as err:
-            logger.Write("DataServer:  State 3. Accept ERROR %s ... Exiting\n\n"% err)
-            Cleanup()
-            return
+            logger.Write("DataServer:  State 3. Accept ERROR %s ... Will attempt to restart server\n\n"% err)
+            Cleanup(logger)
+            return -1
         time.sleep(2)
         logger.Write('\n')
 
@@ -128,16 +129,24 @@ def DataServer(logger):
         errsGenerated = ThroughPutTest(logger)
         endTime = GetTimeStamp.datestr2datenum()
 
-        Utils.ErrorReport(errsGenerated)
-
         sys.stdout.write('Elapsed time:  %s (%s seconds) \n' % (GetTimeStamp.ElapsedTimeStr(endTime - startTime), endTime - startTime))
 
         # Wait before closing connection to let last packet be received
         time.sleep(2)
-        s2.shutdown(1)
-        s2.close()
-        logger.Write(msg+'\n\n\n')
-        s0.close()
+        if not errsGenerated:
+            Cleanup(logger)
+            logger.Write("DataServer:  State 4. Data transmission error ... Will attempt to restart server\n\n")
+            return -1
+
+        try:
+            s2.shutdown(1)
+            s2.close()
+            logger.Write('\n\n')
+            s0.close()
+        except Exception as err:
+            logger.Write('DataServer:  ERROR shuting down socket - %s\n\n'% err)
+
+        Utils.ErrorReport(errsGenerated)
 
 
 
@@ -146,10 +155,13 @@ def ThroughPutTest(logger):
     global nSimErrors
     global s2
 
+    s2.settimeout(8)
     buff = Settings.buff
     nSimErrors = 0
     errsGenerated = []
     msgCount = 1
+    nErrors = 0
+    maxNumErrors = 8
     for iChunk in range(0, Settings.nChunks):
         chunkID = iChunk % int(Settings.nChunksMax)
         buff = buff + np.uint32(Settings.N)
@@ -168,7 +180,14 @@ def ThroughPutTest(logger):
             msgCount = msgCount+1
             logger.Write(msg2)
 
-        s2.send(chunkBytes)
+        try:
+            s2.send(chunkBytes)
+        except Exception as err:
+            if nErrors > maxNumErrors:
+                Cleanup(logger)
+                return errsGenerated
+            logger.Write('DataServer:  Transmission ERROR #%d - %s\n'% (nErrors, err))
+            nErrors = nErrors+1
         time.sleep(Settings.transmissionDelay)
 
     return errsGenerated
@@ -194,14 +213,31 @@ def SimErrors(chunkBytes):
 
 
 # -----------------------------------------------------------
-def Cleanup():
+def Cleanup(logger):
     global s0
     global s1
     global s
     global s2
 
-    s0.close()
-    s1.close()
-    s.close()
-    s2.close()
+    try:
+        s0.close()
+    except:
+        logger.Write('DataServer:   Cleanup ERROR s0 already closed\n')
+
+    try:
+        s1.close()
+    except:
+        logger.Write('DataServer:   Cleanup ERROR s1 already closed\n')
+
+    try:
+        s2.shutdown(1)
+        s2.close()
+    except:
+        logger.Write('DataServer:   Cleanup ERROR s2 already closed\n')
+
+    try:
+        s.close()
+    except:
+        logger.Write('DataServer:   Cleanup ERROR s already closed\n')
+
 

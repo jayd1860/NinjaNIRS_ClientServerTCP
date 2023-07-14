@@ -9,18 +9,21 @@ logger = Logger('NinjaNIRS_ClientServer')
 
 # --------------------------------------------------------------------
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        sys.stdout.write('ERROR: no argument supplied\n')
-        quit(1)
-    logger.Write('WELCOME to NinjaNIRS_ClientServerTCP:  %s\n'% sys.argv[1])
-    logger.CurrTime()
-    Settings.Print()
-    if sys.argv[1] == 'client':
-        DataClient(logger)
-    elif sys.argv[1] == 'server':
-        while True:
-            DataServer(logger)
-    elif sys.argv[1] == 'quit':
-        QuitServer(logger)
+    while True:
+        if len(sys.argv) < 2:
+            sys.stdout.write('ERROR: no argument supplied\n')
+            quit(1)
+        logger.Write('WELCOME to NinjaNIRS_ClientServerTCP:  %s\n'% sys.argv[1])
+        logger.CurrTime()
+        Settings.Print()
+        if sys.argv[1] == 'client':
+            DataClient(logger)
+            break
+        elif sys.argv[1] == 'server':
+            if DataServer(logger) == 0:
+                break
+        elif sys.argv[1] == 'quit':
+            QuitServer(logger)
+            break
     logger.Close()
 
